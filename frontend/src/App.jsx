@@ -11,11 +11,6 @@ import ConversationView from './components/ConversationView'
 // Import with explicit path to ensure it's included in build
 // Import with explicit path to ensure it's included in build
 import AIConversations from './components/AIConversations.jsx'
-import TestBox from './components/TestBox.jsx'
-
-// Force import to ensure module is loaded
-console.log('AIConversations import:', AIConversations)
-console.log('TestBox import:', TestBox)
 import axios from 'axios'
 
 // Use environment variable or default to localhost for development
