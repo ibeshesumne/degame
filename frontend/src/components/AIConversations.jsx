@@ -127,29 +127,6 @@ function AIConversations({ events, gameId }) {
       </div>
     </div>
     )
-    
-    return (
-      <div className="bg-white p-6 rounded-lg shadow-lg border-2 border-blue-200">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-            <span className="text-3xl">💬</span>
-            AI Conversations
-            <span className="bg-blue-500 text-white text-sm px-3 py-1 rounded-full">
-              {conversations.length}
-            </span>
-          </h2>
-          <p className="text-sm text-gray-500 mt-2">
-            All prompts and responses from all participants in this game
-          </p>
-        </div>
-
-        <div className="space-y-6">
-          {conversations.map((conv) => (
-            <ConversationCard key={conv.id} conversation={conv} />
-          ))}
-        </div>
-      </div>
-    )
   } catch (error) {
     // Always render something, even if there's an error
     console.error('❌ AIConversations ERROR:', error)
