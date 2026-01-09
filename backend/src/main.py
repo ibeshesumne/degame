@@ -28,8 +28,10 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:5173",
         "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173"
-    ],  # React dev servers
+        "http://127.0.0.1:5173",
+        # Vercel deployments (will be updated after deployment)
+        "https://*.vercel.app",  # Allows all Vercel preview and production deployments
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
