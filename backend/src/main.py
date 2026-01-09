@@ -355,8 +355,25 @@ async def ask_ai(
     import uuid
     
     # For general analysis, game_id is optional
-    if not prompt.general_analysis and prompt.game_id not in games:
-        raise HTTPException(status_code=404, detail="Game not found")
+    if not prompt.general_analysis:
+        # Try to load game if not in memory
+        if prompt.game_id not in games:
+            engine = game_storage.load_game(prompt.game_id)
+            if engine:
+                games[prompt.game_id] = engine
+            else:
+                # Check if events/sessions exist (game file might be lost on ephemeral filesystem)
+                existing_events = event_storage.get_events(prompt.game_id, since=None, limit=1)
+                existing_sessions = event_storage.get_sessions(prompt.game_id)
+                
+                if existing_events or existing_sessions:
+                    # Recreate game engine if events exist but game file is missing
+                    engine, payoff_matrix = create_prisoner_dilemma_game()
+                    engine.game_id = prompt.game_id
+                    games[prompt.game_id] = engine
+                    save_game(prompt.game_id)
+                else:
+                    raise HTTPException(status_code=404, detail="Game not found")
     
     # Get game state (create minimal state for general questions if needed)
     # IMPORTANT: Always use the actual game_id for events, even for general_analysis
