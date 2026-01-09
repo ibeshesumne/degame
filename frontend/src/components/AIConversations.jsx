@@ -14,9 +14,6 @@ function AIConversations({ events, gameId }) {
   // This ensures we can see if component is being called at all
   return (
     <>
-      <div className="bg-orange-500 p-4 border-4 border-orange-700 text-white font-bold mb-4">
-        🟠 AIConversations RENDERED! Events: {events?.length || 0} | GameId: {gameId || 'none'}
-      </div>
       {(() => {
         // ALWAYS return something visible - even before try-catch
         // This ensures component never returns null/undefined
