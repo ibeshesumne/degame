@@ -583,6 +583,9 @@ function App() {
               <div className="lg:col-span-1 space-y-6">
                 <ActiveSessions sessions={sessions} currentSessionId={sessionId} />
                 {/* Clean AI Conversations - shows prompts and responses in clear boxes */}
+                <div className="bg-red-200 p-2 mb-2 text-xs">
+                  DEBUG: About to render AIConversations with {events?.length || 0} events
+                </div>
                 <AIConversations events={events} gameId={gameId} />
                 <AIPanel
                   gameId={gameId}
