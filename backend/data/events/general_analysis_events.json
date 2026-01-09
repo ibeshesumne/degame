@@ -1,0 +1,98 @@
+[
+  {
+    "event_id": "event_6db816f2",
+    "game_id": "general_analysis",
+    "event_type": "PROMPT",
+    "actor_session_id": "anonymous",
+    "actor_name": "User_anonymou",
+    "data": {
+      "prompt_id": "prompt_2d195dd5",
+      "prompt_text": "what is optimal path to peace for Taiwan bearing in mind the intent and objectives of the US and China. How can Taiwan itself influence that outcome.",
+      "role": "analyst",
+      "model": "openai:gpt-4",
+      "thread_id": "thread_69cf2f8b",
+      "parent_prompt_id": null
+    },
+    "parent_event_id": null,
+    "timestamp": "2026-01-09T19:04:58.311516"
+  },
+  {
+    "event_id": "event_5bfc2b2f",
+    "game_id": "general_analysis",
+    "event_type": "RESPONSE",
+    "actor_session_id": "anonymous",
+    "actor_name": "User_anonymou",
+    "data": {
+      "prompt_id": "prompt_1767981914.515892",
+      "response_text": "The strategic players/stakeholders in this scenario are Taiwan, China, and the US.\n\nPOSSIBLE STRATEGIES AND PAYOFFS:\n\n1. Taiwan: Its strategies include maintaining the status quo, declaring independen",
+      "role": "analyst",
+      "thread_id": "thread_69cf2f8b"
+    },
+    "parent_event_id": "event_6db816f2",
+    "timestamp": "2026-01-09T19:05:14.515992"
+  },
+  {
+    "event_id": "event_f078de30",
+    "game_id": "general_analysis",
+    "event_type": "PROMPT",
+    "actor_session_id": "anonymous",
+    "actor_name": "User_anonymou",
+    "data": {
+      "prompt_id": "prompt_8fa005de",
+      "prompt_text": "greenland options\n",
+      "role": "analyst",
+      "model": "openai:gpt-4",
+      "thread_id": "thread_c0233499",
+      "parent_prompt_id": null
+    },
+    "parent_event_id": null,
+    "timestamp": "2026-01-09T19:12:36.021258"
+  },
+  {
+    "event_id": "event_c55fb301",
+    "game_id": "general_analysis",
+    "event_type": "RESPONSE",
+    "actor_session_id": "anonymous",
+    "actor_name": "User_anonymou",
+    "data": {
+      "prompt_id": "prompt_1767982378.375336",
+      "response_text": "The question \"Greenland options\" is quite broad, so I'll assume you're referring to a scenario such as Greenland deciding whether to pursue independence from Denmark or not. \n\n1. Strategic Players/Sta",
+      "role": "analyst",
+      "thread_id": "thread_c0233499"
+    },
+    "parent_event_id": "event_f078de30",
+    "timestamp": "2026-01-09T19:12:58.375469"
+  },
+  {
+    "event_id": "event_6f5a0b3e",
+    "game_id": "general_analysis",
+    "event_type": "PROMPT",
+    "actor_session_id": "session_1767982467079_y9lipbb2d",
+    "actor_name": "User_session_",
+    "data": {
+      "prompt_id": "prompt_eb50a5fc",
+      "prompt_text": "how best should ukraine deal with Russia?",
+      "role": "analyst",
+      "model": "openai:gpt-4",
+      "thread_id": "thread_8559e01f",
+      "parent_prompt_id": null
+    },
+    "parent_event_id": null,
+    "timestamp": "2026-01-09T19:16:05.690709"
+  },
+  {
+    "event_id": "event_bc8536ff",
+    "game_id": "general_analysis",
+    "event_type": "RESPONSE",
+    "actor_session_id": "session_1767982467079_y9lipbb2d",
+    "actor_name": "User_session_",
+    "data": {
+      "prompt_id": "prompt_1767982588.756477",
+      "response_text": "Strategic Players/Stakeholders:\n1. Ukraine: It seeks to maintain its sovereignty and territorial integrity, and possibly to gain further international support.\n2. Russia: It seeks to extend its influe",
+      "role": "analyst",
+      "thread_id": "thread_8559e01f"
+    },
+    "parent_event_id": "event_6f5a0b3e",
+    "timestamp": "2026-01-09T19:16:28.756606"
+  }
+]

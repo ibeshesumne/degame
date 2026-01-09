@@ -1,0 +1,14 @@
+[
+  {
+    "event_id": "event_6283dd3e",
+    "game_id": "prisoner_dilemma_aae48702",
+    "event_type": "PLAYER_JOINED",
+    "actor_session_id": "anonymous",
+    "actor_name": "User_anonymou",
+    "data": {
+      "message": "Game created"
+    },
+    "parent_event_id": null,
+    "timestamp": "2026-01-09T19:02:45.219741"
+  }
+]
