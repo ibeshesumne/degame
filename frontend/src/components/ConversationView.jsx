@@ -1,6 +1,10 @@
 import React, { useState, useMemo } from 'react'
 
 function ConversationView({ events, gameId }) {
+  // Debug: log events to see what we're getting
+  console.log('ConversationView - Total events:', events.length)
+  console.log('ConversationView - Events:', events)
+  
   // Group prompts and responses together
   const conversations = useMemo(() => {
     const convos = []
