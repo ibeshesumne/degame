@@ -29,8 +29,12 @@ app.add_middleware(
         "http://localhost:5173",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
-        # Vercel deployments (will be updated after deployment)
+        # Vercel deployments
         "https://*.vercel.app",  # Allows all Vercel preview and production deployments
+        # Render deployments (alternative backend hosting)
+        "https://*.onrender.com",
+        # Railway deployments
+        "https://*.railway.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
