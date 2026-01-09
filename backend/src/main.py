@@ -178,8 +178,24 @@ async def add_player(
     user_id: str = Depends(get_current_user)
 ):
     """Add a player to the game."""
+    # Try loading from storage if not in memory
     if game_id not in games:
-        raise HTTPException(status_code=404, detail="Game not found")
+        engine = game_storage.load_game(game_id)
+        if engine:
+            games[game_id] = engine
+        else:
+            # Check if events/sessions exist (game file might be lost on ephemeral filesystem)
+            existing_events = event_storage.get_events(game_id, since=None, limit=1)
+            existing_sessions = event_storage.get_sessions(game_id)
+            
+            if existing_events or existing_sessions:
+                # Recreate game engine if events exist but game file is missing
+                engine, payoff_matrix = create_prisoner_dilemma_game()
+                engine.game_id = game_id
+                games[game_id] = engine
+                save_game(game_id)
+            else:
+                raise HTTPException(status_code=404, detail="Game not found")
     
     engine = games[game_id]
     engine.add_player(player)
@@ -206,8 +222,24 @@ async def submit_move(
         player_id: Player ID
         move_type: The move/strategy chosen
     """
+    # Try loading from storage if not in memory
     if game_id not in games:
-        raise HTTPException(status_code=404, detail="Game not found")
+        engine = game_storage.load_game(game_id)
+        if engine:
+            games[game_id] = engine
+        else:
+            # Check if events/sessions exist (game file might be lost on ephemeral filesystem)
+            existing_events = event_storage.get_events(game_id, since=None, limit=1)
+            existing_sessions = event_storage.get_sessions(game_id)
+            
+            if existing_events or existing_sessions:
+                # Recreate game engine if events exist but game file is missing
+                engine, payoff_matrix = create_prisoner_dilemma_game()
+                engine.game_id = game_id
+                games[game_id] = engine
+                save_game(game_id)
+            else:
+                raise HTTPException(status_code=404, detail="Game not found")
     
     engine = games[game_id]
     success = engine.submit_move(player_id, move_type)
@@ -248,8 +280,24 @@ async def resolve_round(
     user_id: str = Depends(get_current_user)
 ):
     """Resolve the current round and compute payoffs."""
+    # Try loading from storage if not in memory
     if game_id not in games:
-        raise HTTPException(status_code=404, detail="Game not found")
+        engine = game_storage.load_game(game_id)
+        if engine:
+            games[game_id] = engine
+        else:
+            # Check if events/sessions exist (game file might be lost on ephemeral filesystem)
+            existing_events = event_storage.get_events(game_id, since=None, limit=1)
+            existing_sessions = event_storage.get_sessions(game_id)
+            
+            if existing_events or existing_sessions:
+                # Recreate game engine if events exist but game file is missing
+                engine, payoff_matrix = create_prisoner_dilemma_game()
+                engine.game_id = game_id
+                games[game_id] = engine
+                save_game(game_id)
+            else:
+                raise HTTPException(status_code=404, detail="Game not found")
     
     engine = games[game_id]
     result = engine.resolve_round()
@@ -422,7 +470,18 @@ async def get_game_state(
         if engine:
             games[game_id] = engine
         else:
-            raise HTTPException(status_code=404, detail="Game not found")
+            # Check if events/sessions exist (game file might be lost on ephemeral filesystem)
+            existing_events = event_storage.get_events(game_id, since=None, limit=1)
+            existing_sessions = event_storage.get_sessions(game_id)
+            
+            if existing_events or existing_sessions:
+                # Recreate game engine if events exist but game file is missing
+                engine, payoff_matrix = create_prisoner_dilemma_game()
+                engine.game_id = game_id
+                games[game_id] = engine
+                save_game(game_id)
+            else:
+                raise HTTPException(status_code=404, detail="Game not found")
     
     engine = games[game_id]
     state = engine.get_current_state()
@@ -447,8 +506,24 @@ async def get_equilibria(
     Args:
         game_id: Game ID
     """
+    # Try loading from storage if not in memory
     if game_id not in games:
-        raise HTTPException(status_code=404, detail="Game not found")
+        engine = game_storage.load_game(game_id)
+        if engine:
+            games[game_id] = engine
+        else:
+            # Check if events/sessions exist (game file might be lost on ephemeral filesystem)
+            existing_events = event_storage.get_events(game_id, since=None, limit=1)
+            existing_sessions = event_storage.get_sessions(game_id)
+            
+            if existing_events or existing_sessions:
+                # Recreate game engine if events exist but game file is missing
+                engine, payoff_matrix = create_prisoner_dilemma_game()
+                engine.game_id = game_id
+                games[game_id] = engine
+                save_game(game_id)
+            else:
+                raise HTTPException(status_code=404, detail="Game not found")
     
     engine = games[game_id]
     game_state = engine.get_current_state()
@@ -475,7 +550,18 @@ async def get_move_history(
         if engine:
             games[game_id] = engine
         else:
-            raise HTTPException(status_code=404, detail="Game not found")
+            # Check if events/sessions exist (game file might be lost on ephemeral filesystem)
+            existing_events = event_storage.get_events(game_id, since=None, limit=1)
+            existing_sessions = event_storage.get_sessions(game_id)
+            
+            if existing_events or existing_sessions:
+                # Recreate game engine if events exist but game file is missing
+                engine, payoff_matrix = create_prisoner_dilemma_game()
+                engine.game_id = game_id
+                games[game_id] = engine
+                save_game(game_id)
+            else:
+                raise HTTPException(status_code=404, detail="Game not found")
     
     engine = games[game_id]
     game_state = engine.get_current_state()
@@ -514,14 +600,31 @@ async def join_game(
         game_id: Game ID to join
         user_name: Optional user name (defaults to session-based name)
     """
-    # Check if game exists
+    # Check if game exists in memory
     if game_id not in games:
         # Try loading from storage
         engine = game_storage.load_game(game_id)
         if engine:
             games[game_id] = engine
         else:
-            raise HTTPException(status_code=404, detail="Game not found")
+            # Game file doesn't exist - check if events or sessions exist
+            # This handles cases where game files were lost (e.g., on Render's ephemeral filesystem)
+            # but events/sessions still exist
+            existing_events = event_storage.get_events(game_id, since=None, limit=1)
+            existing_sessions = event_storage.get_sessions(game_id)
+            
+            if existing_events or existing_sessions:
+                # Game has history, create a new game engine to allow continuation
+                # This is a fallback for when game files are lost but events exist
+                engine, payoff_matrix = create_prisoner_dilemma_game()
+                # Override the game_id to match the existing game
+                engine.game_id = game_id
+                games[game_id] = engine
+                # Save the recreated game
+                save_game(game_id)
+            else:
+                # No game file, no events, no sessions - game truly doesn't exist
+                raise HTTPException(status_code=404, detail="Game not found")
     
     # Create or update session
     if not user_name:
