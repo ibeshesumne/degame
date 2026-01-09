@@ -91,11 +91,23 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 
 def get_or_create_session(session_id: str, user_name: Optional[str] = None, game_id: Optional[str] = None) -> UserSession:
     """Get existing session or create a new one."""
+    # First check in-memory cache
     if session_id in sessions:
         session = sessions[session_id]
         if game_id:
             event_storage.update_session_activity(session_id, game_id)
         return session
+    
+    # If not in memory, check storage for existing session
+    if game_id:
+        stored_sessions = event_storage.get_sessions(game_id)
+        for stored_session in stored_sessions:
+            if stored_session.session_id == session_id:
+                # Found existing session in storage, use it
+                sessions[session_id] = stored_session
+                if game_id:
+                    event_storage.update_session_activity(session_id, game_id)
+                return stored_session
     
     # Create new session
     if not user_name:
@@ -577,7 +589,12 @@ async def get_updates(
             raise HTTPException(status_code=400, detail="Invalid timestamp format")
     
     # Get events
-    events = event_storage.get_events(game_id, since=since_dt, limit=100)
+    # If since is None (initial fetch), get all events (no limit)
+    # If since is provided (incremental update), limit to recent events
+    if since_dt is None:
+        events = event_storage.get_events(game_id, since=None, limit=None)
+    else:
+        events = event_storage.get_events(game_id, since=since_dt, limit=100)
     
     # Get AI responses for prompts
     responses = []

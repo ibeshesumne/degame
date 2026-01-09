@@ -98,7 +98,7 @@ class EventStorage:
         Args:
             game_id: Game ID
             since: Only return events after this timestamp
-            limit: Maximum number of events to return
+            limit: Maximum number of events to return (ignored if since is None to allow full history)
             
         Returns:
             List of GameEvent objects
@@ -119,9 +119,18 @@ class EventStorage:
             # Sort by timestamp
             events.sort(key=lambda e: e.timestamp)
             
-            # Apply limit
-            if limit:
-                events = events[-limit:]
+            # Apply limit logic:
+            # - If since is None (initial fetch), return all events (or up to 10000 if limit is set)
+            # - If since is provided (incremental update), apply the limit
+            if since is None:
+                # For initial fetch, return all events (or up to 10000 if limit is set)
+                if limit:
+                    events = events[-10000:]  # Large limit for initial fetch
+                # else: return all events (no limit applied)
+            else:
+                # For incremental updates, apply the limit if provided
+                if limit:
+                    events = events[-limit:]
             
             return events
         except Exception as e:
@@ -153,16 +162,24 @@ class EventStorage:
         # Load existing sessions
         sessions_file = self._get_sessions_file(game_id)
         sessions_dict = {}
+        existing_joined_at = None
         if sessions_file.exists():
             try:
                 with open(sessions_file, 'r') as f:
                     sessions_data = json.load(f)
                     sessions_dict = {s['session_id']: s for s in sessions_data}
+                    # Preserve original joined_at if session already exists
+                    if session_id in sessions_dict:
+                        existing_joined_at = sessions_dict[session_id].get('joined_at')
             except Exception as e:
                 print(f"Error loading sessions: {e}")
         
         # Update or add session
-        sessions_dict[session_id] = session.model_dump(mode='json')
+        session_dict = session.model_dump(mode='json')
+        # Preserve original joined_at if updating existing session
+        if existing_joined_at:
+            session_dict['joined_at'] = existing_joined_at
+        sessions_dict[session_id] = session_dict
         
         # Save sessions
         try:
