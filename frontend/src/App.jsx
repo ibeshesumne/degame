@@ -586,28 +586,28 @@ function App() {
               </div>
 
               <div className="lg:col-span-1 space-y-6">
-                {/* CRITICAL TEST: This MUST be visible */}
-                <div className="bg-red-600 p-6 mb-4 text-white font-bold text-xl border-8 border-red-900 z-50">
-                  🔴 SIDEBAR TEST 1: This red box MUST be visible. If you don't see this, sidebar isn't rendering.
+                {/* CRITICAL TEST: This MUST be visible - VERSION 2.0 */}
+                <div style={{ backgroundColor: '#dc2626', padding: '24px', marginBottom: '16px', color: 'white', fontWeight: 'bold', fontSize: '20px', border: '8px solid #991b1b', zIndex: 50 }}>
+                  🔴 SIDEBAR TEST 1 V2.0: This red box MUST be visible. Build: {new Date().toISOString()}
                 </div>
                 
                 <ActiveSessions sessions={sessions} currentSessionId={sessionId} />
                 
-                {/* CRITICAL TEST: This MUST be visible */}
-                <div className="bg-yellow-500 p-6 mb-4 text-black font-bold text-xl border-8 border-yellow-900 z-50">
-                  🟡 SIDEBAR TEST 2: About to render AIConversations with {events?.length || 0} events | gameId: {gameId || 'none'}
+                {/* CRITICAL TEST: This MUST be visible - VERSION 2.0 */}
+                <div style={{ backgroundColor: '#eab308', padding: '24px', marginBottom: '16px', color: 'black', fontWeight: 'bold', fontSize: '20px', border: '8px solid #854d0e', zIndex: 50 }}>
+                  🟡 SIDEBAR TEST 2 V2.0: About to render AIConversations with {events?.length || 0} events | gameId: {gameId || 'none'}
                 </div>
                 
-                {/* CRITICAL TEST: This MUST be visible */}
-                <div className="bg-blue-500 p-6 mb-4 text-white font-bold text-xl border-8 border-blue-900 z-50">
-                  🔵 SIDEBAR TEST 3: AIConversations component should render below this.
+                {/* CRITICAL TEST: This MUST be visible - VERSION 2.0 */}
+                <div style={{ backgroundColor: '#3b82f6', padding: '24px', marginBottom: '16px', color: 'white', fontWeight: 'bold', fontSize: '20px', border: '8px solid #1e3a8a', zIndex: 50 }}>
+                  🔵 SIDEBAR TEST 3 V2.0: AIConversations component should render below this.
                 </div>
                 
                 <AIConversations events={events} gameId={gameId} />
                 
-                {/* CRITICAL TEST: This MUST be visible */}
-                <div className="bg-green-500 p-6 mt-4 text-white font-bold text-xl border-8 border-green-900 z-50">
-                  🟢 SIDEBAR TEST 4: This appears after AIConversations. If you see this but not the component above, component returned null/undefined.
+                {/* CRITICAL TEST: This MUST be visible - VERSION 2.0 */}
+                <div style={{ backgroundColor: '#22c55e', padding: '24px', marginTop: '16px', color: 'white', fontWeight: 'bold', fontSize: '20px', border: '8px solid #166534', zIndex: 50 }}>
+                  🟢 SIDEBAR TEST 4 V2.0: This appears after AIConversations. Build timestamp: {Date.now()}
                 </div>
                 <AIPanel
                   gameId={gameId}
