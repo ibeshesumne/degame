@@ -8,7 +8,8 @@ import ActiveSessions from './components/ActiveSessions'
 import EventFeed from './components/EventFeed'
 import ThreadConversations from './components/ThreadConversations'
 import ConversationView from './components/ConversationView'
-import AIConversations from './components/AIConversations'
+// Import with explicit path to ensure it's included in build
+import AIConversations from './components/AIConversations.jsx'
 import axios from 'axios'
 
 // Use environment variable or default to localhost for development

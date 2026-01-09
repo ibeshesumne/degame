@@ -280,8 +280,6 @@ function ConversationCard({ conversation }) {
   )
 }
 
-// Ensure component is exported correctly
+// Ensure component is exported correctly - use both default and named export
 export default AIConversations
-
-// Also export as named export for debugging
 export { AIConversations }
