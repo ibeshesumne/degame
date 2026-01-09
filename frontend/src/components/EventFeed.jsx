@@ -56,76 +56,59 @@ function EventFeed({ events }) {
         )
       case 'PROMPT':
         const promptText = event.data?.prompt_text || ''
-        const promptIsLong = promptText.length > 60
-        const showFullPrompt = isExpanded || !promptIsLong
+        // Always show full prompt text - no truncation
         return (
           <div>
             <div className="flex items-start gap-2">
               <span className="font-semibold text-purple-600">{actorName}</span> asked:
             </div>
-            <div 
-              className={`mt-1 ${promptIsLong ? 'cursor-pointer hover:bg-purple-100 rounded p-1' : ''}`}
-              onClick={() => promptIsLong && toggleEvent(event.event_id)}
-            >
-              <span className="italic text-gray-800 whitespace-pre-wrap">
-                "{showFullPrompt ? promptText : promptText.substring(0, 60) + '...'}"
-              </span>
-              {promptIsLong && !isExpanded && (
-                <span className="text-xs text-purple-600 ml-1">(click to expand)</span>
-              )}
-              {promptIsLong && isExpanded && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    toggleEvent(event.event_id)
-                  }}
-                  className="text-xs text-purple-600 ml-2 hover:underline"
-                >
-                  (collapse)
-                </button>
+            <div className="mt-1 p-2 bg-purple-50 rounded border border-purple-200">
+              <div className="text-gray-800 whitespace-pre-wrap">
+                {promptText || '(No prompt text available)'}
+              </div>
+              {event.data?.role && (
+                <div className="text-xs text-gray-500 mt-1">
+                  Role: {event.data.role} • Model: {event.data.model || 'unknown'}
+                </div>
               )}
             </div>
           </div>
         )
       case 'RESPONSE':
         const responseText = event.data?.response_text || ''
-        const responseIsLong = responseText.length > 100
-        const showFullResponse = isExpanded || !responseIsLong
+        // Debug: log the event data to see what we're getting
+        if (!responseText) {
+          console.log('RESPONSE event missing response_text:', event)
+        }
+        // Always show full response text - no truncation
         return (
           <div>
-            <div className="flex items-start gap-2">
-              <span className="font-semibold text-green-600">AI</span> responded to{' '}
+            <div className="flex items-start gap-2 mb-2">
+              <span className="font-semibold text-green-600">🤖 AI</span> responded to{' '}
               <span className="font-semibold">{actorName}</span>
               {event.data?.thread_id && (
                 <span className="text-xs text-gray-500 ml-2">(thread: {event.data.thread_id.substring(0, 8)}...)</span>
               )}
             </div>
             {responseText ? (
-              <div 
-                className={`mt-2 p-2 bg-green-50 rounded border border-green-200 ${responseIsLong ? 'cursor-pointer hover:bg-green-100' : ''}`}
-                onClick={() => responseIsLong && toggleEvent(event.event_id)}
-              >
+              <div className="mt-2 p-3 bg-green-50 rounded border border-green-200">
                 <div className="text-sm text-gray-800 whitespace-pre-wrap">
-                  {showFullResponse ? responseText : responseText.substring(0, 100) + '...'}
+                  {responseText}
                 </div>
-                {responseIsLong && !isExpanded && (
-                  <span className="text-xs text-green-600 mt-1 block">(click to read full response)</span>
-                )}
-                {responseIsLong && isExpanded && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      toggleEvent(event.event_id)
-                    }}
-                    className="text-xs text-green-600 mt-1 hover:underline"
-                  >
-                    (collapse)
-                  </button>
+                {event.data?.role && (
+                  <div className="text-xs text-gray-500 mt-2">
+                    Role: {event.data.role} • Model: {event.data.model || 'unknown'}
+                  </div>
                 )}
               </div>
             ) : (
-              <div className="mt-2 p-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-500 italic">
-                Response text not available
+              <div className="mt-2 p-3 bg-yellow-50 rounded border border-yellow-200">
+                <div className="text-sm text-yellow-800">
+                  ⚠️ Response text not available in event data
+                </div>
+                <div className="text-xs text-yellow-600 mt-1">
+                  Event data: {JSON.stringify(event.data || {}, null, 2).substring(0, 200)}
+                </div>
               </div>
             )}
           </div>
