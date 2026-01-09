@@ -583,10 +583,18 @@ function App() {
               <div className="lg:col-span-1 space-y-6">
                 <ActiveSessions sessions={sessions} currentSessionId={sessionId} />
                 {/* Clean AI Conversations - shows prompts and responses in clear boxes */}
-                <div className="bg-red-200 p-2 mb-2 text-xs">
-                  DEBUG: About to render AIConversations with {events?.length || 0} events
+                <div className="bg-red-500 p-4 mb-4 text-white font-bold border-4 border-red-700">
+                  🔴 DEBUG: About to render AIConversations with {events?.length || 0} events | gameId: {gameId || 'none'}
+                </div>
+                {/* Test: Simple div to verify location */}
+                <div className="bg-yellow-400 p-4 mb-4 border-4 border-yellow-600">
+                  🟡 TEST: This should be visible. If you see this but not AIConversations, component is failing.
                 </div>
                 <AIConversations events={events} gameId={gameId} />
+                {/* Test: Another div after to verify component rendered */}
+                <div className="bg-green-400 p-4 mt-4 border-4 border-green-600">
+                  🟢 TEST: This appears after AIConversations. If you see this but not the component above, component returned null/undefined.
+                </div>
                 <AIPanel
                   gameId={gameId}
                   onAskAI={askAI}

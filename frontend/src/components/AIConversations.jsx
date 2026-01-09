@@ -10,14 +10,32 @@ function AIConversations({ events, gameId }) {
     events: events 
   })
   
-  // Wrap in try-catch to prevent silent failures in production
-  try {
+  // ALWAYS render a test div first to verify component is rendering
+  // This ensures we can see if component is being called at all
+  return (
+    <>
+      <div className="bg-orange-500 p-4 border-4 border-orange-700 text-white font-bold mb-4">
+        🟠 AIConversations RENDERED! Events: {events?.length || 0} | GameId: {gameId || 'none'}
+      </div>
+      {(() => {
+        // ALWAYS return something visible - even before try-catch
+        // This ensures component never returns null/undefined
+        if (events === undefined || events === null) {
+          return (
+            <div className="bg-purple-500 p-4 border-4 border-purple-700 text-white font-bold">
+              ⚠️ AIConversations: events is undefined/null. Received: {String(events)}
+            </div>
+          )
+        }
+        
+        // Wrap in try-catch to prevent silent failures in production
+        try {
     // Ensure events is an array
     const safeEvents = Array.isArray(events) ? events : []
     
     // Process events to pair prompts with responses
     const conversations = useMemo(() => {
-    const convos = []
+      const convos = []
     const promptMap = new Map() // event_id -> prompt event
     const responseMap = new Map() // parent_event_id -> response event
     
@@ -46,9 +64,9 @@ function AIConversations({ events, gameId }) {
       })
     })
     
-    // Sort by timestamp (oldest first for chronological reading)
-    return convos.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-  }, [safeEvents])
+      // Sort by timestamp (oldest first for chronological reading)
+      return convos.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    }, [safeEvents])
   
   console.log('🔍 AIConversations processed:', {
     conversationsCount: conversations.length,
@@ -127,7 +145,7 @@ function AIConversations({ events, gameId }) {
       </div>
     </div>
     )
-  } catch (error) {
+        } catch (error) {
     // Always render something, even if there's an error
     console.error('❌ AIConversations ERROR:', error)
     return (
@@ -153,7 +171,10 @@ function AIConversations({ events, gameId }) {
         </div>
       </div>
     )
-  }
+        }
+      })()}
+    </>
+  )
 }
 
 function ConversationCard({ conversation }) {
@@ -259,4 +280,8 @@ function ConversationCard({ conversation }) {
   )
 }
 
+// Ensure component is exported correctly
 export default AIConversations
+
+// Also export as named export for debugging
+export { AIConversations }
