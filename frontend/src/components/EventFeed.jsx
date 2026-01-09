@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 function EventFeed({ events }) {
   const feedRef = useRef(null)
+  const [expandedEvents, setExpandedEvents] = useState(new Set())
 
   useEffect(() => {
     // Auto-scroll to bottom when new events arrive
@@ -29,8 +30,20 @@ function EventFeed({ events }) {
     }
   }
 
+  const toggleEvent = (eventId) => {
+    const newExpanded = new Set(expandedEvents)
+    if (newExpanded.has(eventId)) {
+      newExpanded.delete(eventId)
+    } else {
+      newExpanded.add(eventId)
+    }
+    setExpandedEvents(newExpanded)
+  }
+
   const formatEventMessage = (event) => {
     const actorName = event.actor_name || 'Someone'
+    const isExpanded = expandedEvents.has(event.event_id)
+    
     switch (event.event_type) {
       case 'MOVE':
         const playerName = event.data.player_name || event.data.player_id || 'a player'
@@ -42,19 +55,72 @@ function EventFeed({ events }) {
           </div>
         )
       case 'PROMPT':
+        const promptText = event.data.prompt_text || ''
+        const shouldTruncate = promptText.length > 60 && !isExpanded
         return (
           <div>
-            <span className="font-semibold text-purple-600">{actorName}</span> asked:{' '}
-            <span className="italic">"{event.data.prompt_text?.substring(0, 60) || '...'}..."</span>
+            <div className="flex items-start gap-2">
+              <span className="font-semibold text-purple-600">{actorName}</span> asked:
+            </div>
+            <div 
+              className={`mt-1 ${shouldTruncate ? 'cursor-pointer hover:bg-purple-100 rounded p-1' : ''}`}
+              onClick={() => shouldTruncate && toggleEvent(event.event_id)}
+            >
+              <span className="italic text-gray-800 whitespace-pre-wrap">
+                "{shouldTruncate ? promptText.substring(0, 60) + '...' : promptText}"
+              </span>
+              {shouldTruncate && (
+                <span className="text-xs text-purple-600 ml-1">(click to expand)</span>
+              )}
+              {isExpanded && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleEvent(event.event_id)
+                  }}
+                  className="text-xs text-purple-600 ml-2 hover:underline"
+                >
+                  (collapse)
+                </button>
+              )}
+            </div>
           </div>
         )
       case 'RESPONSE':
+        const responseText = event.data.response_text || ''
+        const shouldTruncateResponse = responseText.length > 100 && !isExpanded
         return (
           <div>
-            <span className="font-semibold text-green-600">AI</span> responded to{' '}
-            <span className="font-semibold">{actorName}</span>
-            {event.data.thread_id && (
-              <span className="text-xs text-gray-500 ml-2">(thread: {event.data.thread_id.substring(0, 8)}...)</span>
+            <div className="flex items-start gap-2">
+              <span className="font-semibold text-green-600">AI</span> responded to{' '}
+              <span className="font-semibold">{actorName}</span>
+              {event.data.thread_id && (
+                <span className="text-xs text-gray-500 ml-2">(thread: {event.data.thread_id.substring(0, 8)}...)</span>
+              )}
+            </div>
+            {responseText && (
+              <div 
+                className={`mt-2 p-2 bg-green-50 rounded border border-green-200 ${shouldTruncateResponse ? 'cursor-pointer hover:bg-green-100' : ''}`}
+                onClick={() => shouldTruncateResponse && toggleEvent(event.event_id)}
+              >
+                <div className="text-sm text-gray-800 whitespace-pre-wrap">
+                  {shouldTruncateResponse ? responseText.substring(0, 100) + '...' : responseText}
+                </div>
+                {shouldTruncateResponse && (
+                  <span className="text-xs text-green-600 mt-1 block">(click to read full response)</span>
+                )}
+                {isExpanded && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleEvent(event.event_id)
+                    }}
+                    className="text-xs text-green-600 mt-1 hover:underline"
+                  >
+                    (collapse)
+                  </button>
+                )}
+              </div>
             )}
           </div>
         )
