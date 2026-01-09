@@ -14,9 +14,9 @@ function AIConversations({ events, gameId }) {
   try {
     // Ensure events is an array
     const safeEvents = Array.isArray(events) ? events : []
-  
-  // Process events to pair prompts with responses
-  const conversations = useMemo(() => {
+    
+    // Process events to pair prompts with responses
+    const conversations = useMemo(() => {
     const convos = []
     const promptMap = new Map() // event_id -> prompt event
     const responseMap = new Map() // parent_event_id -> response event
@@ -55,11 +55,11 @@ function AIConversations({ events, gameId }) {
     conversations: conversations
   })
 
-  // Always show the component, even if empty
-  const promptEvents = safeEvents.filter(e => e.event_type === 'PROMPT')
-  const responseEvents = safeEvents.filter(e => e.event_type === 'RESPONSE')
-  
-  if (conversations.length === 0) {
+    // Always show the component, even if empty
+    const promptEvents = safeEvents.filter(e => e.event_type === 'PROMPT')
+    const responseEvents = safeEvents.filter(e => e.event_type === 'RESPONSE')
+    
+    if (conversations.length === 0) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-lg border-4 border-blue-400" style={{ minHeight: '200px' }}>
         <div className="mb-4">
@@ -126,7 +126,30 @@ function AIConversations({ events, gameId }) {
         ))}
       </div>
     </div>
-  )
+    )
+    
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-lg border-2 border-blue-200">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+            <span className="text-3xl">💬</span>
+            AI Conversations
+            <span className="bg-blue-500 text-white text-sm px-3 py-1 rounded-full">
+              {conversations.length}
+            </span>
+          </h2>
+          <p className="text-sm text-gray-500 mt-2">
+            All prompts and responses from all participants in this game
+          </p>
+        </div>
+
+        <div className="space-y-6">
+          {conversations.map((conv) => (
+            <ConversationCard key={conv.id} conversation={conv} />
+          ))}
+        </div>
+      </div>
+    )
   } catch (error) {
     // Always render something, even if there's an error
     console.error('❌ AIConversations ERROR:', error)
