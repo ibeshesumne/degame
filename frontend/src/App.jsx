@@ -8,6 +8,7 @@ import ActiveSessions from './components/ActiveSessions'
 import EventFeed from './components/EventFeed'
 import ThreadConversations from './components/ThreadConversations'
 import ConversationView from './components/ConversationView'
+import AIConversations from './components/AIConversations'
 import axios from 'axios'
 
 // Use environment variable or default to localhost for development
@@ -581,8 +582,8 @@ function App() {
 
               <div className="lg:col-span-1 space-y-6">
                 <ActiveSessions sessions={sessions} currentSessionId={sessionId} />
-                {/* Primary conversation view - shows prompts and responses paired together */}
-                <ConversationView events={events} gameId={gameId} />
+                {/* Clean AI Conversations - shows prompts and responses in clear boxes */}
+                <AIConversations events={events} gameId={gameId} />
                 <AIPanel
                   gameId={gameId}
                   onAskAI={askAI}
@@ -590,8 +591,6 @@ function App() {
                   replyingToThread={replyingToThread}
                   onReplyComplete={() => setReplyingToThread(null)}
                 />
-                {/* Event feed shows all events chronologically */}
-                <EventFeed events={events} />
                 <EquilibriaDisplay
                   equilibria={equilibria}
                   onFetchEquilibria={fetchEquilibria}
