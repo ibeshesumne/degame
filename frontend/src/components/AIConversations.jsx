@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react'
 
 function AIConversations({ events, gameId }) {
-  // Debug logging
-  console.log('🔍 AIConversations rendered:', { 
+  // CRITICAL DEBUG: Log immediately to confirm component is being called
+  console.log('🔍🔍🔍 AIConversations COMPONENT CALLED:', { 
     eventsCount: events?.length || 0, 
     gameId,
+    eventsType: typeof events,
+    isArray: Array.isArray(events),
     events: events 
   })
   
