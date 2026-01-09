@@ -6,9 +6,26 @@ function ThreadConversations({ events, onReplyToThread, currentSessionId }) {
     const threadMap = {}
     
     // Filter only PROMPT and RESPONSE events
-    const aiEvents = events.filter(e => 
-      e.event_type === 'PROMPT' || e.event_type === 'RESPONSE'
-    )
+    // Make sure we're getting events from all participants
+    const aiEvents = events.filter(e => {
+      if (e.event_type !== 'PROMPT' && e.event_type !== 'RESPONSE') {
+        return false
+      }
+      if (!e.data) {
+        return false
+      }
+      // For PROMPT events, check for prompt_text
+      if (e.event_type === 'PROMPT' && !e.data.prompt_text) {
+        return false
+      }
+      // For RESPONSE events, check for response_text
+      if (e.event_type === 'RESPONSE' && !e.data.response_text) {
+        return false
+      }
+      return true
+    })
+    
+    console.log('ThreadConversations: Total events:', events.length, 'AI events:', aiEvents.length)
     
     // Group by thread_id
     aiEvents.forEach(event => {

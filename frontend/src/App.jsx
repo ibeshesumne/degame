@@ -225,10 +225,9 @@ function App() {
           const existingIds = new Set(prev.map(e => e.event_id))
           const newEvents = response.data.events.filter(e => !existingIds.has(e.event_id))
           const combined = [...prev, ...newEvents]
-          // Sort by timestamp and keep last 100 events
+          // Sort by timestamp - keep all events (not just last 100) so all threads are visible
           return combined
             .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-            .slice(-100)
         })
         // Refresh game state if there are new moves
         const hasMoves = response.data.events.some(e => e.event_type === 'MOVE' || e.event_type === 'ROUND_RESOLVED')

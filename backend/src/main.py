@@ -359,13 +359,16 @@ async def ask_ai(
         raise HTTPException(status_code=404, detail="Game not found")
     
     # Get game state (create minimal state for general questions if needed)
+    # IMPORTANT: Always use the actual game_id for events, even for general_analysis
+    # This ensures all participants see all prompts/responses for their game
     if prompt.general_analysis:
         # Create a minimal game state for general questions
         dummy_matrix = PayoffMatrix(players=[], strategies={}, payoffs={})
         dummy_engine = GameEngine("general_analysis", dummy_matrix)
         game_state = dummy_engine.get_current_state()
         analytics_engine = None  # No equilibria for general questions
-        game_id_for_event = "general_analysis"
+        # Use the actual game_id so events are visible to all participants
+        game_id_for_event = prompt.game_id
     else:
         engine = games[prompt.game_id]
         game_state = engine.get_current_state()

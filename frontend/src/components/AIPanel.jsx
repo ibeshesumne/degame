@@ -32,14 +32,24 @@ function AIPanel({ gameId, onAskAI, gameState, replyingToThread, onReplyComplete
 
     setLoading(true)
     try {
-      const result = await onAskAI({
+      const promptPayload = {
         role: role,
         model: model,
         prompt_text: prompt,
-        general_analysis: generalAnalysis,
-        thread_id: threadId || undefined,
-        parent_prompt_id: parentPromptId || undefined
-      })
+        general_analysis: generalAnalysis
+      }
+      
+      // If replying to a thread, include thread_id
+      if (threadId) {
+        promptPayload.thread_id = threadId
+        console.log('Replying to thread:', threadId)
+      }
+      
+      if (parentPromptId) {
+        promptPayload.parent_prompt_id = parentPromptId
+      }
+      
+      const result = await onAskAI(promptPayload)
       if (result) {
         setResponse(result.response)
         // Clear prompt after successful submission
