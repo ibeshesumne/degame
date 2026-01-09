@@ -581,6 +581,7 @@ function App() {
 
               <div className="lg:col-span-1 space-y-6">
                 <ActiveSessions sessions={sessions} currentSessionId={sessionId} />
+                {/* Primary conversation view - shows prompts and responses paired together */}
                 <ConversationView events={events} gameId={gameId} />
                 <AIPanel
                   gameId={gameId}
@@ -589,6 +590,7 @@ function App() {
                   replyingToThread={replyingToThread}
                   onReplyComplete={() => setReplyingToThread(null)}
                 />
+                {/* Event feed shows all events chronologically */}
                 <EventFeed events={events} />
                 <EquilibriaDisplay
                   equilibria={equilibria}

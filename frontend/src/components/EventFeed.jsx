@@ -75,11 +75,18 @@ function EventFeed({ events }) {
           </div>
         )
       case 'RESPONSE':
+        // Debug: log EVERYTHING about this response event
+        console.log('🔍 RESPONSE EVENT:', {
+          event_id: event.event_id,
+          event_type: event.event_type,
+          actor_name: event.actor_name,
+          data: event.data,
+          parent_event_id: event.parent_event_id,
+          full_event: event
+        })
         const responseText = event.data?.response_text || ''
-        // Debug: log the event data to see what we're getting
-        if (!responseText) {
-          console.log('RESPONSE event missing response_text:', event)
-        }
+        console.log('🔍 Extracted response_text:', responseText, 'Length:', responseText.length)
+        
         // Always show full response text - no truncation
         return (
           <div>
@@ -102,13 +109,18 @@ function EventFeed({ events }) {
                 )}
               </div>
             ) : (
-              <div className="mt-2 p-3 bg-yellow-50 rounded border border-yellow-200">
-                <div className="text-sm text-yellow-800">
+              <div className="mt-2 p-3 bg-yellow-50 rounded border-2 border-yellow-400">
+                <div className="text-sm text-yellow-800 font-semibold mb-2">
                   ⚠️ Response text not available in event data
                 </div>
-                <div className="text-xs text-yellow-600 mt-1">
-                  Event data: {JSON.stringify(event.data || {}, null, 2).substring(0, 200)}
-                </div>
+                <details className="text-xs">
+                  <summary className="cursor-pointer text-yellow-600 hover:text-yellow-800 font-semibold mb-1">
+                    🔍 Click to see full event data (for debugging)
+                  </summary>
+                  <pre className="text-xs bg-yellow-100 p-2 rounded mt-1 max-h-60 overflow-auto font-mono">
+                    {JSON.stringify(event, null, 2)}
+                  </pre>
+                </details>
               </div>
             )}
           </div>
