@@ -22,21 +22,29 @@ from .event_storage import EventStorage
 app = FastAPI(title="Game-Theoretic Platform API", version="1.0.0")
 
 # CORS middleware
+# For production, allow all origins (you can restrict this later for security)
+import os
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else []
+
+# Default origins for development and common hosting platforms
+default_origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+
+# Combine default and environment-specified origins
+cors_origins = default_origins + [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
+
+# If no specific origins set, allow all (for easier deployment - restrict in production)
+if not ALLOWED_ORIGINS:
+    cors_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-        # Vercel deployments
-        "https://*.vercel.app",  # Allows all Vercel preview and production deployments
-        # Render deployments (alternative backend hosting)
-        "https://*.onrender.com",
-        # Railway deployments
-        "https://*.railway.app",
-    ],
-    allow_credentials=True,
+    allow_origins=cors_origins,
+    allow_credentials=True if cors_origins != ["*"] else False,  # credentials not allowed with wildcard
     allow_methods=["*"],
     allow_headers=["*"],
 )
