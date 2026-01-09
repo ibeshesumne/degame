@@ -1,12 +1,30 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
-function AIPanel({ gameId, onAskAI, gameState }) {
+function AIPanel({ gameId, onAskAI, gameState, replyingToThread, onReplyComplete }) {
   const [prompt, setPrompt] = useState('')
   const [role, setRole] = useState('analyst')
   const [model, setModel] = useState('openai:gpt-4')
   const [generalAnalysis, setGeneralAnalysis] = useState(true)
   const [response, setResponse] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [threadId, setThreadId] = useState(null)
+  const [parentPromptId, setParentPromptId] = useState(null)
+
+  // When replying to a thread, set the thread_id and parent_prompt_id
+  useEffect(() => {
+    if (replyingToThread) {
+      setThreadId(replyingToThread)
+      setParentPromptId(null) // Will be set by the backend based on thread
+      // Focus the prompt textarea
+      const textarea = document.querySelector('textarea')
+      if (textarea) {
+        textarea.focus()
+      }
+    } else {
+      setThreadId(null)
+      setParentPromptId(null)
+    }
+  }, [replyingToThread])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -18,10 +36,21 @@ function AIPanel({ gameId, onAskAI, gameState }) {
         role: role,
         model: model,
         prompt_text: prompt,
-        general_analysis: generalAnalysis
+        general_analysis: generalAnalysis,
+        thread_id: threadId || undefined,
+        parent_prompt_id: parentPromptId || undefined
       })
       if (result) {
         setResponse(result.response)
+        // Clear prompt after successful submission
+        setPrompt('')
+        // If replying to thread, notify parent
+        if (replyingToThread && onReplyComplete) {
+          onReplyComplete()
+        }
+        // Reset thread context
+        setThreadId(null)
+        setParentPromptId(null)
       }
     } catch (error) {
       console.error('Error asking AI:', error)
@@ -85,16 +114,38 @@ function AIPanel({ gameId, onAskAI, gameState }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Prompt</label>
+          <label className="block text-sm font-medium mb-1">
+            {threadId ? 'Reply to Thread' : 'Prompt'}
+            {threadId && (
+              <span className="ml-2 text-xs text-purple-600">(Thread: {threadId.substring(0, 8)}...)</span>
+            )}
+          </label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             rows="4"
-            placeholder={generalAnalysis 
-              ? "Ask about any topic: 'What would happen if the US captured Venezuela's Maduro?', 'How should oil companies respond to market volatility?', etc. The AI will analyze it through game theory and Nash equilibrium."
-              : "Ask AI to analyze the current game state, suggest moves, or evaluate strategies..."}
+            placeholder={threadId
+              ? "Continue the conversation in this thread..."
+              : generalAnalysis 
+                ? "Ask about any topic: 'What would happen if the US captured Venezuela's Maduro?', 'How should oil companies respond to market volatility?', etc. The AI will analyze it through game theory and Nash equilibrium."
+                : "Ask AI to analyze the current game state, suggest moves, or evaluate strategies..."}
           />
+          {threadId && (
+            <button
+              type="button"
+              onClick={() => {
+                setThreadId(null)
+                setParentPromptId(null)
+                if (onReplyComplete) {
+                  onReplyComplete()
+                }
+              }}
+              className="mt-2 text-xs text-purple-600 hover:text-purple-800"
+            >
+              Cancel reply
+            </button>
+          )}
         </div>
 
         <button

@@ -6,6 +6,7 @@ import EquilibriaDisplay from './components/EquilibriaDisplay'
 import JoinGame from './components/JoinGame'
 import ActiveSessions from './components/ActiveSessions'
 import EventFeed from './components/EventFeed'
+import ThreadConversations from './components/ThreadConversations'
 import axios from 'axios'
 
 // Use environment variable or default to localhost for development
@@ -26,6 +27,7 @@ function App() {
   const [events, setEvents] = useState([])
   const [lastUpdateTime, setLastUpdateTime] = useState(null)
   const pollingIntervalRef = useRef(null)
+  const [replyingToThread, setReplyingToThread] = useState(null)
 
   // Generate a unique session ID for this user
   useEffect(() => {
@@ -564,12 +566,19 @@ function App() {
 
               <div className="lg:col-span-1 space-y-6">
                 <ActiveSessions sessions={sessions} currentSessionId={sessionId} />
-                <EventFeed events={events} />
+                <ThreadConversations 
+                  events={events} 
+                  onReplyToThread={(threadId) => setReplyingToThread(threadId)}
+                  currentSessionId={sessionId}
+                />
                 <AIPanel
                   gameId={gameId}
                   onAskAI={askAI}
                   gameState={gameState}
+                  replyingToThread={replyingToThread}
+                  onReplyComplete={() => setReplyingToThread(null)}
                 />
+                <EventFeed events={events} />
                 <EquilibriaDisplay
                   equilibria={equilibria}
                   onFetchEquilibria={fetchEquilibria}

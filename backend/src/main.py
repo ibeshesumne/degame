@@ -397,7 +397,7 @@ async def ask_ai(
     # Process prompt WITH analytics engine
     response = ai_orchestrator.process_prompt(prompt, game_state, analytics_engine)
     
-    # Create response event
+    # Create response event with full response text
     response_event = event_storage.create_event(
         game_id=game_id_for_event,
         event_type=EventType.RESPONSE,
@@ -405,9 +405,11 @@ async def ask_ai(
         actor_name=session.user_name,
         data={
             "prompt_id": response.prompt_id,
-            "response_text": response.response_text[:200],  # Truncate for event
+            "response_text": response.response_text,  # Store full response text
             "role": response.role.value,
-            "thread_id": prompt.thread_id
+            "model": response.model.value,
+            "thread_id": prompt.thread_id,
+            "parent_prompt_id": prompt.parent_prompt_id
         },
         parent_event_id=prompt_event.event_id
     )
