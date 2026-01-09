@@ -7,6 +7,7 @@ import JoinGame from './components/JoinGame'
 import ActiveSessions from './components/ActiveSessions'
 import EventFeed from './components/EventFeed'
 import ThreadConversations from './components/ThreadConversations'
+import ConversationView from './components/ConversationView'
 import axios from 'axios'
 
 // Use environment variable or default to localhost for development
@@ -580,12 +581,7 @@ function App() {
 
               <div className="lg:col-span-1 space-y-6">
                 <ActiveSessions sessions={sessions} currentSessionId={sessionId} />
-                <ThreadConversations 
-                  events={events} 
-                  onReplyToThread={(threadId) => setReplyingToThread(threadId)}
-                  currentSessionId={sessionId}
-                  gameId={gameId}
-                />
+                <ConversationView events={events} gameId={gameId} />
                 <AIPanel
                   gameId={gameId}
                   onAskAI={askAI}
