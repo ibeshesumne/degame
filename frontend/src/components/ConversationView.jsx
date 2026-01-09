@@ -91,6 +91,10 @@ function ConversationView({ events, gameId }) {
     return { threads: sortedThreads, noThread }
   }, [conversations])
 
+  // Debug: also show raw event counts
+  const promptCount = events.filter(e => e.event_type === 'PROMPT').length
+  const responseCount = events.filter(e => e.event_type === 'RESPONSE').length
+  
   if (conversations.length === 0) {
     return (
       <div className="bg-white p-6 rounded shadow border-2 border-dashed border-gray-300">
@@ -100,6 +104,9 @@ function ConversationView({ events, gameId }) {
         </h3>
         <p className="text-sm text-gray-500">No conversations yet</p>
         <p className="text-xs text-gray-400 mt-2">Ask the AI a question to start a conversation!</p>
+        <p className="text-xs text-gray-500 mt-2">
+          Debug: {promptCount} prompts, {responseCount} responses found in events
+        </p>
       </div>
     )
   }
@@ -111,6 +118,9 @@ function ConversationView({ events, gameId }) {
         AI Conversations
         <span className="bg-purple-500 text-white text-sm px-2 py-1 rounded-full">{conversations.length}</span>
       </h3>
+      <p className="text-xs text-gray-500 mb-3">
+        Debug: {promptCount} prompts, {responseCount} responses • {conversations.filter(c => c.response).length} with responses
+      </p>
       
       <div className="space-y-4 max-h-[600px] overflow-y-auto">
         {/* Show threaded conversations */}
