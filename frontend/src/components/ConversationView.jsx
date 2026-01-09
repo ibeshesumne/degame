@@ -4,53 +4,43 @@ function ConversationView({ events, gameId }) {
   // Group prompts and responses together
   const conversations = useMemo(() => {
     const convos = []
-    const promptMap = new Map() // prompt_id -> prompt event
+    const promptMap = new Map() // event_id -> prompt event
+    const responseMap = new Map() // parent_event_id -> response event
     
-    // First pass: collect all prompts
+    // First pass: collect all prompts and responses
     events.forEach(event => {
       if (event.event_type === 'PROMPT' && event.data?.prompt_text) {
-        const promptId = event.data.prompt_id || event.event_id
-        promptMap.set(promptId, event)
-      }
-    })
-    
-    // Second pass: pair prompts with their responses
-    events.forEach(event => {
-      if (event.event_type === 'RESPONSE') {
-        const promptId = event.data?.prompt_id
-        const promptEvent = promptId ? promptMap.get(promptId) : null
-        
-        if (promptEvent) {
-          convos.push({
-            id: `${promptEvent.event_id}_${event.event_id}`,
-            prompt: promptEvent,
-            response: event,
-            timestamp: promptEvent.timestamp,
-            threadId: promptEvent.data?.thread_id || event.data?.thread_id
-          })
-        } else {
-          // Response without matching prompt (shouldn't happen, but handle it)
-          convos.push({
-            id: `response_${event.event_id}`,
-            prompt: null,
-            response: event,
-            timestamp: event.timestamp,
-            threadId: event.data?.thread_id
-          })
+        promptMap.set(event.event_id, event)
+      } else if (event.event_type === 'RESPONSE') {
+        // Responses are linked via parent_event_id (which points to the prompt event)
+        const parentId = event.parent_event_id
+        if (parentId) {
+          responseMap.set(parentId, event)
         }
       }
     })
     
-    // Add prompts without responses
-    promptMap.forEach((promptEvent, promptId) => {
-      const hasResponse = convos.some(c => c.prompt?.event_id === promptEvent.event_id)
-      if (!hasResponse) {
+    // Second pass: pair prompts with their responses
+    promptMap.forEach((promptEvent, promptEventId) => {
+      const responseEvent = responseMap.get(promptEventId)
+      convos.push({
+        id: `conv_${promptEventId}`,
+        prompt: promptEvent,
+        response: responseEvent || null,
+        timestamp: promptEvent.timestamp,
+        threadId: promptEvent.data?.thread_id || responseEvent?.data?.thread_id
+      })
+    })
+    
+    // Add any responses that don't have a matching prompt (shouldn't happen, but handle it)
+    responseMap.forEach((responseEvent, parentId) => {
+      if (!promptMap.has(parentId)) {
         convos.push({
-          id: `prompt_${promptEvent.event_id}`,
-          prompt: promptEvent,
-          response: null,
-          timestamp: promptEvent.timestamp,
-          threadId: promptEvent.data?.thread_id
+          id: `response_${responseEvent.event_id}`,
+          prompt: null,
+          response: responseEvent,
+          timestamp: responseEvent.timestamp,
+          threadId: responseEvent.data?.thread_id
         })
       }
     })
