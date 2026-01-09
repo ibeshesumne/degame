@@ -1,7 +1,7 @@
 """
 FastAPI application - API Gateway and main entry point.
 """
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Optional, Dict, Any
@@ -94,6 +94,10 @@ def get_or_create_session(session_id: str, user_name: Optional[str] = None, game
     # First check in-memory cache
     if session_id in sessions:
         session = sessions[session_id]
+        # Update user_name if provided and different
+        if user_name and user_name != session.user_name and game_id:
+            session.user_name = user_name
+            event_storage.create_session(session_id, user_name, game_id)  # Update in storage
         if game_id:
             event_storage.update_session_activity(session_id, game_id)
         return session
@@ -103,7 +107,15 @@ def get_or_create_session(session_id: str, user_name: Optional[str] = None, game
         stored_sessions = event_storage.get_sessions(game_id)
         for stored_session in stored_sessions:
             if stored_session.session_id == session_id:
-                # Found existing session in storage, use it
+                # Found existing session in storage
+                # Update user_name if provided and different
+                if user_name and user_name != stored_session.user_name:
+                    # Update the session in storage with new user_name
+                    updated_session = event_storage.create_session(session_id, user_name, game_id)
+                    sessions[session_id] = updated_session
+                    if game_id:
+                        event_storage.update_session_activity(session_id, game_id)
+                    return updated_session
                 sessions[session_id] = stored_session
                 if game_id:
                     event_storage.update_session_activity(session_id, game_id)
@@ -590,7 +602,7 @@ async def list_games(user_id: str = Depends(get_current_user)):
 @app.post("/game/{game_id}/join")
 async def join_game(
     game_id: str,
-    user_name: Optional[str] = None,
+    request_body: Dict[str, Any] = Body(...),
     user_id: str = Depends(get_current_user)
 ):
     """
@@ -598,8 +610,11 @@ async def join_game(
     
     Args:
         game_id: Game ID to join
-        user_name: Optional user name (defaults to session-based name)
+        request_body: Request body containing optional user_name
     """
+    # Extract user_name from request body
+    user_name = request_body.get("user_name")
+    
     # Check if game exists in memory
     if game_id not in games:
         # Try loading from storage
@@ -626,10 +641,11 @@ async def join_game(
                 # No game file, no events, no sessions - game truly doesn't exist
                 raise HTTPException(status_code=404, detail="Game not found")
     
-    # Create or update session
+    # Create or update session with proper user_name
     if not user_name:
         user_name = f"User_{user_id[:8]}"
     
+    # Always update the session with the provided user_name (or default)
     session = event_storage.create_session(user_id, user_name, game_id)
     sessions[user_id] = session
     
