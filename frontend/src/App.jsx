@@ -9,7 +9,11 @@ import EventFeed from './components/EventFeed'
 import ThreadConversations from './components/ThreadConversations'
 import ConversationView from './components/ConversationView'
 // Import with explicit path to ensure it's included in build
+// Import with explicit path to ensure it's included in build
 import AIConversations from './components/AIConversations.jsx'
+
+// Force import to ensure module is loaded
+console.log('AIConversations import:', AIConversations)
 import axios from 'axios'
 
 // Use environment variable or default to localhost for development
