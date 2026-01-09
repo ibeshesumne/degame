@@ -588,36 +588,10 @@ function App() {
               </div>
 
               <div className="lg:col-span-1 space-y-6">
-                {/* SIMPLE TEST COMPONENT - VERSION 3.0 */}
-                <TestBox color="#dc2626" text="🔴 TEST BOX 1: Simple component test" />
-                
-                {/* DIRECT DIV TEST */}
-                <div style={{ backgroundColor: '#eab308', padding: '24px', marginBottom: '16px', color: 'black', fontWeight: 'bold', fontSize: '20px', border: '8px solid black' }}>
-                  🟡 TEST BOX 2: Direct div (no component)
-                </div>
-                
                 <ActiveSessions sessions={sessions} currentSessionId={sessionId} />
                 
-                {/* ANOTHER SIMPLE TEST */}
-                <TestBox color="#3b82f6" text={`🔵 TEST BOX 3: Events: ${events?.length || 0}, GameId: ${gameId || 'none'}`} />
-                
-                {/* TRY RENDERING AIConversations WITH ERROR BOUNDARY */}
-                {(() => {
-                  try {
-                    console.log('Attempting to render AIConversations...')
-                    return <AIConversations events={events} gameId={gameId} />
-                  } catch (error) {
-                    console.error('Error rendering AIConversations:', error)
-                    return (
-                      <div style={{ backgroundColor: '#ef4444', padding: '24px', color: 'white', fontWeight: 'bold' }}>
-                        ❌ ERROR rendering AIConversations: {error.message}
-                      </div>
-                    )
-                  }
-                })()}
-                
-                {/* FINAL TEST */}
-                <TestBox color="#22c55e" text="🟢 TEST BOX 4: After AIConversations" />
+                {/* AI Conversations - shows prompts and responses in clean boxes */}
+                <AIConversations events={events} gameId={gameId} />
                 <AIPanel
                   gameId={gameId}
                   onAskAI={askAI}
