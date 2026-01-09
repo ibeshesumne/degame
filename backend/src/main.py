@@ -207,7 +207,22 @@ async def add_player(
                 games[game_id] = engine
                 save_game(game_id)
             else:
-                raise HTTPException(status_code=404, detail="Game not found")
+                # Game doesn't exist - create a new one with the requested game_id
+                # This handles cases where the game was lost due to ephemeral storage
+                # but someone is trying to use it (e.g., from a shared game_id)
+                engine, payoff_matrix = create_prisoner_dilemma_game()
+                engine.game_id = game_id
+                games[game_id] = engine
+                save_game(game_id)
+                # Create a join event for the user attempting to add a player
+                session = get_or_create_session(user_id, game_id=game_id)
+                event_storage.create_event(
+                    game_id=game_id,
+                    event_type=EventType.PLAYER_JOINED,
+                    actor_session_id=user_id,
+                    actor_name=session.user_name,
+                    data={"message": "Game recreated and player being added"}
+                )
     
     engine = games[game_id]
     engine.add_player(player)
