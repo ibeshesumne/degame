@@ -1,13 +1,17 @@
 import React, { useState, useMemo } from 'react'
 
-function ThreadConversations({ events, onReplyToThread, currentSessionId }) {
+function ThreadConversations({ events, onReplyToThread, currentSessionId, gameId }) {
   // Group events by thread_id
   const threads = useMemo(() => {
     const threadMap = {}
     
-    // Filter only PROMPT and RESPONSE events
-    // Make sure we're getting events from all participants
+    // Filter only PROMPT and RESPONSE events for the current game
+    // Make sure we're getting events from all participants but only for this game
     const aiEvents = events.filter(e => {
+      // Only include events for the current game
+      if (gameId && e.game_id !== gameId) {
+        return false
+      }
       if (e.event_type !== 'PROMPT' && e.event_type !== 'RESPONSE') {
         return false
       }
@@ -25,7 +29,7 @@ function ThreadConversations({ events, onReplyToThread, currentSessionId }) {
       return true
     })
     
-    console.log('ThreadConversations: Total events:', events.length, 'AI events:', aiEvents.length)
+    console.log('ThreadConversations: Total events:', events.length, 'AI events:', aiEvents.length, 'gameId:', gameId)
     
     // Group by thread_id
     aiEvents.forEach(event => {

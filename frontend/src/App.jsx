@@ -161,6 +161,9 @@ function App() {
       )
       setGameId(finalGameId)
       setUserName(name)
+      // Clear events from previous game before loading new ones
+      setEvents([])
+      setLastUpdateTime(null)
       await fetchGameState(finalGameId)
       await fetchSessions(finalGameId)
       // Load all existing events first
@@ -220,22 +223,34 @@ function App() {
       })
       
       if (response.data.events && response.data.events.length > 0) {
+        // Filter events to only include those for the current game_id
+        const gameEvents = response.data.events.filter(e => e.game_id === id)
+        
         // Deduplicate events by event_id and keep only new ones
         setEvents(prev => {
+          // If since is null (initial fetch), replace all events with new ones for this game
+          if (since === null) {
+            return gameEvents.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+          }
+          
+          // Otherwise, append new events
           const existingIds = new Set(prev.map(e => e.event_id))
-          const newEvents = response.data.events.filter(e => !existingIds.has(e.event_id))
+          const newEvents = gameEvents.filter(e => !existingIds.has(e.event_id))
           const combined = [...prev, ...newEvents]
           // Sort by timestamp - keep all events (not just last 100) so all threads are visible
           return combined
             .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
         })
         // Refresh game state if there are new moves
-        const hasMoves = response.data.events.some(e => e.event_type === 'MOVE' || e.event_type === 'ROUND_RESOLVED')
+        const hasMoves = gameEvents.some(e => e.event_type === 'MOVE' || e.event_type === 'ROUND_RESOLVED')
         if (hasMoves) {
           await fetchGameState(id)
         }
       } else {
-        setEvents(prev => prev.length > 0 ? prev : [])
+        // If no events returned and this is initial fetch, clear events
+        if (since === null) {
+          setEvents([])
+        }
       }
       
       if (response.data.latest_timestamp) {
@@ -569,6 +584,7 @@ function App() {
                   events={events} 
                   onReplyToThread={(threadId) => setReplyingToThread(threadId)}
                   currentSessionId={sessionId}
+                  gameId={gameId}
                 />
                 <AIPanel
                   gameId={gameId}
