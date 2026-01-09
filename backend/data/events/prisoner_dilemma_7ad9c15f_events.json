@@ -1,0 +1,26 @@
+[
+  {
+    "event_id": "event_910ff61b",
+    "game_id": "prisoner_dilemma_7ad9c15f",
+    "event_type": "PLAYER_JOINED",
+    "actor_session_id": "session_1768000052025_de94yxoeb",
+    "actor_name": "User_session_",
+    "data": {
+      "message": "Game created"
+    },
+    "parent_event_id": null,
+    "timestamp": "2026-01-10T00:07:38.559142"
+  },
+  {
+    "event_id": "event_e76254a3",
+    "game_id": "prisoner_dilemma_7ad9c15f",
+    "event_type": "PLAYER_JOINED",
+    "actor_session_id": "session_1768000052025_de94yxoeb",
+    "actor_name": "ml",
+    "data": {
+      "user_name": "ml"
+    },
+    "parent_event_id": null,
+    "timestamp": "2026-01-10T00:07:38.567450"
+  }
+]

@@ -11,9 +11,11 @@ import ConversationView from './components/ConversationView'
 // Import with explicit path to ensure it's included in build
 // Import with explicit path to ensure it's included in build
 import AIConversations from './components/AIConversations.jsx'
+import TestBox from './components/TestBox.jsx'
 
 // Force import to ensure module is loaded
 console.log('AIConversations import:', AIConversations)
+console.log('TestBox import:', TestBox)
 import axios from 'axios'
 
 // Use environment variable or default to localhost for development
@@ -586,29 +588,36 @@ function App() {
               </div>
 
               <div className="lg:col-span-1 space-y-6">
-                {/* CRITICAL TEST: This MUST be visible - VERSION 2.0 */}
-                <div style={{ backgroundColor: '#dc2626', padding: '24px', marginBottom: '16px', color: 'white', fontWeight: 'bold', fontSize: '20px', border: '8px solid #991b1b', zIndex: 50 }}>
-                  🔴 SIDEBAR TEST 1 V2.0: This red box MUST be visible. Build: {new Date().toISOString()}
+                {/* SIMPLE TEST COMPONENT - VERSION 3.0 */}
+                <TestBox color="#dc2626" text="🔴 TEST BOX 1: Simple component test" />
+                
+                {/* DIRECT DIV TEST */}
+                <div style={{ backgroundColor: '#eab308', padding: '24px', marginBottom: '16px', color: 'black', fontWeight: 'bold', fontSize: '20px', border: '8px solid black' }}>
+                  🟡 TEST BOX 2: Direct div (no component)
                 </div>
                 
                 <ActiveSessions sessions={sessions} currentSessionId={sessionId} />
                 
-                {/* CRITICAL TEST: This MUST be visible - VERSION 2.0 */}
-                <div style={{ backgroundColor: '#eab308', padding: '24px', marginBottom: '16px', color: 'black', fontWeight: 'bold', fontSize: '20px', border: '8px solid #854d0e', zIndex: 50 }}>
-                  🟡 SIDEBAR TEST 2 V2.0: About to render AIConversations with {events?.length || 0} events | gameId: {gameId || 'none'}
-                </div>
+                {/* ANOTHER SIMPLE TEST */}
+                <TestBox color="#3b82f6" text={`🔵 TEST BOX 3: Events: ${events?.length || 0}, GameId: ${gameId || 'none'}`} />
                 
-                {/* CRITICAL TEST: This MUST be visible - VERSION 2.0 */}
-                <div style={{ backgroundColor: '#3b82f6', padding: '24px', marginBottom: '16px', color: 'white', fontWeight: 'bold', fontSize: '20px', border: '8px solid #1e3a8a', zIndex: 50 }}>
-                  🔵 SIDEBAR TEST 3 V2.0: AIConversations component should render below this.
-                </div>
+                {/* TRY RENDERING AIConversations WITH ERROR BOUNDARY */}
+                {(() => {
+                  try {
+                    console.log('Attempting to render AIConversations...')
+                    return <AIConversations events={events} gameId={gameId} />
+                  } catch (error) {
+                    console.error('Error rendering AIConversations:', error)
+                    return (
+                      <div style={{ backgroundColor: '#ef4444', padding: '24px', color: 'white', fontWeight: 'bold' }}>
+                        ❌ ERROR rendering AIConversations: {error.message}
+                      </div>
+                    )
+                  }
+                })()}
                 
-                <AIConversations events={events} gameId={gameId} />
-                
-                {/* CRITICAL TEST: This MUST be visible - VERSION 2.0 */}
-                <div style={{ backgroundColor: '#22c55e', padding: '24px', marginTop: '16px', color: 'white', fontWeight: 'bold', fontSize: '20px', border: '8px solid #166534', zIndex: 50 }}>
-                  🟢 SIDEBAR TEST 4 V2.0: This appears after AIConversations. Build timestamp: {Date.now()}
-                </div>
+                {/* FINAL TEST */}
+                <TestBox color="#22c55e" text="🟢 TEST BOX 4: After AIConversations" />
                 <AIPanel
                   gameId={gameId}
                   onAskAI={askAI}
