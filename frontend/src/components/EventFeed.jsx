@@ -55,24 +55,25 @@ function EventFeed({ events }) {
           </div>
         )
       case 'PROMPT':
-        const promptText = event.data.prompt_text || ''
-        const shouldTruncate = promptText.length > 60 && !isExpanded
+        const promptText = event.data?.prompt_text || ''
+        const promptIsLong = promptText.length > 60
+        const showFullPrompt = isExpanded || !promptIsLong
         return (
           <div>
             <div className="flex items-start gap-2">
               <span className="font-semibold text-purple-600">{actorName}</span> asked:
             </div>
             <div 
-              className={`mt-1 ${shouldTruncate ? 'cursor-pointer hover:bg-purple-100 rounded p-1' : ''}`}
-              onClick={() => shouldTruncate && toggleEvent(event.event_id)}
+              className={`mt-1 ${promptIsLong ? 'cursor-pointer hover:bg-purple-100 rounded p-1' : ''}`}
+              onClick={() => promptIsLong && toggleEvent(event.event_id)}
             >
               <span className="italic text-gray-800 whitespace-pre-wrap">
-                "{shouldTruncate ? promptText.substring(0, 60) + '...' : promptText}"
+                "{showFullPrompt ? promptText : promptText.substring(0, 60) + '...'}"
               </span>
-              {shouldTruncate && (
+              {promptIsLong && !isExpanded && (
                 <span className="text-xs text-purple-600 ml-1">(click to expand)</span>
               )}
-              {isExpanded && (
+              {promptIsLong && isExpanded && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
@@ -87,29 +88,30 @@ function EventFeed({ events }) {
           </div>
         )
       case 'RESPONSE':
-        const responseText = event.data.response_text || ''
-        const shouldTruncateResponse = responseText.length > 100 && !isExpanded
+        const responseText = event.data?.response_text || ''
+        const responseIsLong = responseText.length > 100
+        const showFullResponse = isExpanded || !responseIsLong
         return (
           <div>
             <div className="flex items-start gap-2">
               <span className="font-semibold text-green-600">AI</span> responded to{' '}
               <span className="font-semibold">{actorName}</span>
-              {event.data.thread_id && (
+              {event.data?.thread_id && (
                 <span className="text-xs text-gray-500 ml-2">(thread: {event.data.thread_id.substring(0, 8)}...)</span>
               )}
             </div>
-            {responseText && (
+            {responseText ? (
               <div 
-                className={`mt-2 p-2 bg-green-50 rounded border border-green-200 ${shouldTruncateResponse ? 'cursor-pointer hover:bg-green-100' : ''}`}
-                onClick={() => shouldTruncateResponse && toggleEvent(event.event_id)}
+                className={`mt-2 p-2 bg-green-50 rounded border border-green-200 ${responseIsLong ? 'cursor-pointer hover:bg-green-100' : ''}`}
+                onClick={() => responseIsLong && toggleEvent(event.event_id)}
               >
                 <div className="text-sm text-gray-800 whitespace-pre-wrap">
-                  {shouldTruncateResponse ? responseText.substring(0, 100) + '...' : responseText}
+                  {showFullResponse ? responseText : responseText.substring(0, 100) + '...'}
                 </div>
-                {shouldTruncateResponse && (
+                {responseIsLong && !isExpanded && (
                   <span className="text-xs text-green-600 mt-1 block">(click to read full response)</span>
                 )}
-                {isExpanded && (
+                {responseIsLong && isExpanded && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
@@ -120,6 +122,10 @@ function EventFeed({ events }) {
                     (collapse)
                   </button>
                 )}
+              </div>
+            ) : (
+              <div className="mt-2 p-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-500 italic">
+                Response text not available
               </div>
             )}
           </div>
