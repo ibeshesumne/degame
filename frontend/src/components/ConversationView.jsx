@@ -207,13 +207,18 @@ function ConversationItem({ conversation }) {
                 </span>
               </div>
               <div className="bg-white p-3 rounded border border-green-200">
-                <div className="text-gray-800 whitespace-pre-wrap">
-                  {response.data?.response_text || (
-                    <span className="text-yellow-600 italic">
-                      ⚠️ Response text not available. Event data: {JSON.stringify(response.data || {}).substring(0, 100)}
-                    </span>
-                  )}
-                </div>
+                {response.data?.response_text ? (
+                  <div className="text-gray-800 whitespace-pre-wrap">
+                    {response.data.response_text}
+                  </div>
+                ) : (
+                  <div className="text-yellow-600">
+                    <div className="font-semibold mb-2">⚠️ Response text not available</div>
+                    <div className="text-xs font-mono bg-yellow-100 p-2 rounded max-h-40 overflow-auto">
+                      <pre>{JSON.stringify(response, null, 2)}</pre>
+                    </div>
+                  </div>
+                )}
               </div>
               {(response.data?.role || response.data?.model) && (
                 <div className="text-xs text-gray-500 mt-2">
