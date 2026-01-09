@@ -581,19 +581,28 @@ function App() {
               </div>
 
               <div className="lg:col-span-1 space-y-6">
+                {/* CRITICAL TEST: This MUST be visible */}
+                <div className="bg-red-600 p-6 mb-4 text-white font-bold text-xl border-8 border-red-900 z-50">
+                  🔴 SIDEBAR TEST 1: This red box MUST be visible. If you don't see this, sidebar isn't rendering.
+                </div>
+                
                 <ActiveSessions sessions={sessions} currentSessionId={sessionId} />
-                {/* Clean AI Conversations - shows prompts and responses in clear boxes */}
-                <div className="bg-red-500 p-4 mb-4 text-white font-bold border-4 border-red-700">
-                  🔴 DEBUG: About to render AIConversations with {events?.length || 0} events | gameId: {gameId || 'none'}
+                
+                {/* CRITICAL TEST: This MUST be visible */}
+                <div className="bg-yellow-500 p-6 mb-4 text-black font-bold text-xl border-8 border-yellow-900 z-50">
+                  🟡 SIDEBAR TEST 2: About to render AIConversations with {events?.length || 0} events | gameId: {gameId || 'none'}
                 </div>
-                {/* Test: Simple div to verify location */}
-                <div className="bg-yellow-400 p-4 mb-4 border-4 border-yellow-600">
-                  🟡 TEST: This should be visible. If you see this but not AIConversations, component is failing.
+                
+                {/* CRITICAL TEST: This MUST be visible */}
+                <div className="bg-blue-500 p-6 mb-4 text-white font-bold text-xl border-8 border-blue-900 z-50">
+                  🔵 SIDEBAR TEST 3: AIConversations component should render below this.
                 </div>
+                
                 <AIConversations events={events} gameId={gameId} />
-                {/* Test: Another div after to verify component rendered */}
-                <div className="bg-green-400 p-4 mt-4 border-4 border-green-600">
-                  🟢 TEST: This appears after AIConversations. If you see this but not the component above, component returned null/undefined.
+                
+                {/* CRITICAL TEST: This MUST be visible */}
+                <div className="bg-green-500 p-6 mt-4 text-white font-bold text-xl border-8 border-green-900 z-50">
+                  🟢 SIDEBAR TEST 4: This appears after AIConversations. If you see this but not the component above, component returned null/undefined.
                 </div>
                 <AIPanel
                   gameId={gameId}
