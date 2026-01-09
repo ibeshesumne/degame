@@ -1,6 +1,16 @@
 import React, { useMemo } from 'react'
 
 function AIConversations({ events, gameId }) {
+  // Debug logging
+  console.log('🔍 AIConversations rendered:', { 
+    eventsCount: events?.length || 0, 
+    gameId,
+    events: events 
+  })
+  
+  // Ensure events is an array
+  const safeEvents = Array.isArray(events) ? events : []
+  
   // Process events to pair prompts with responses
   const conversations = useMemo(() => {
     const convos = []
@@ -8,7 +18,7 @@ function AIConversations({ events, gameId }) {
     const responseMap = new Map() // parent_event_id -> response event
     
     // First pass: collect all prompts and responses
-    events.forEach(event => {
+    safeEvents.forEach(event => {
       if (event.event_type === 'PROMPT' && event.data?.prompt_text) {
         promptMap.set(event.event_id, event)
       } else if (event.event_type === 'RESPONSE') {
@@ -34,15 +44,23 @@ function AIConversations({ events, gameId }) {
     
     // Sort by timestamp (oldest first for chronological reading)
     return convos.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-  }, [events])
+  }, [safeEvents])
+  
+  console.log('🔍 AIConversations processed:', {
+    conversationsCount: conversations.length,
+    conversations: conversations
+  })
 
   if (conversations.length === 0) {
     return (
-      <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-gray-200">
+      <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-blue-300">
         <div className="text-center">
           <div className="text-6xl mb-4">💬</div>
           <h2 className="text-2xl font-bold text-gray-700 mb-2">AI Conversations</h2>
-          <p className="text-gray-500">No conversations yet. Ask the AI a question to get started!</p>
+          <p className="text-gray-500 mb-2">No conversations yet. Ask the AI a question to get started!</p>
+          <p className="text-xs text-gray-400 mt-4">
+            Debug: {safeEvents.length} total events • {safeEvents.filter(e => e.event_type === 'PROMPT').length} prompts • {safeEvents.filter(e => e.event_type === 'RESPONSE').length} responses
+          </p>
         </div>
       </div>
     )
