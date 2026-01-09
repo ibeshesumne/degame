@@ -51,16 +51,51 @@ function AIConversations({ events, gameId }) {
     conversations: conversations
   })
 
+  // Always show the component, even if empty
+  const promptEvents = safeEvents.filter(e => e.event_type === 'PROMPT')
+  const responseEvents = safeEvents.filter(e => e.event_type === 'RESPONSE')
+  
   if (conversations.length === 0) {
     return (
-      <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-blue-300">
-        <div className="text-center">
-          <div className="text-6xl mb-4">💬</div>
-          <h2 className="text-2xl font-bold text-gray-700 mb-2">AI Conversations</h2>
-          <p className="text-gray-500 mb-2">No conversations yet. Ask the AI a question to get started!</p>
-          <p className="text-xs text-gray-400 mt-4">
-            Debug: {safeEvents.length} total events • {safeEvents.filter(e => e.event_type === 'PROMPT').length} prompts • {safeEvents.filter(e => e.event_type === 'RESPONSE').length} responses
-          </p>
+      <div className="bg-white p-6 rounded-lg shadow-lg border-4 border-blue-400" style={{ minHeight: '200px' }}>
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+            <span className="text-3xl">💬</span>
+            AI Conversations
+            <span className="bg-blue-500 text-white text-sm px-3 py-1 rounded-full">0</span>
+          </h2>
+        </div>
+        <div className="text-center py-4">
+          <p className="text-gray-600 mb-4 font-semibold">No conversations yet. Ask the AI a question to get started!</p>
+          <div className="bg-gray-100 p-4 rounded border-2 border-gray-300 text-left">
+            <p className="text-sm font-semibold text-gray-700 mb-2">Debug Information:</p>
+            <ul className="text-xs text-gray-600 space-y-1">
+              <li>• Total events received: <strong>{safeEvents.length}</strong></li>
+              <li>• PROMPT events: <strong>{promptEvents.length}</strong></li>
+              <li>• RESPONSE events: <strong>{responseEvents.length}</strong></li>
+              <li>• Conversations found: <strong>{conversations.length}</strong></li>
+            </ul>
+            {promptEvents.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-300">
+                <p className="text-xs font-semibold text-purple-700 mb-1">Sample PROMPT events:</p>
+                {promptEvents.slice(0, 2).map((e, i) => (
+                  <div key={i} className="text-xs text-gray-600 mb-1">
+                    • Event ID: {e.event_id} | Has prompt_text: {e.data?.prompt_text ? 'YES' : 'NO'}
+                  </div>
+                ))}
+              </div>
+            )}
+            {responseEvents.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-300">
+                <p className="text-xs font-semibold text-green-700 mb-1">Sample RESPONSE events:</p>
+                {responseEvents.slice(0, 2).map((e, i) => (
+                  <div key={i} className="text-xs text-gray-600 mb-1">
+                    • Event ID: {e.event_id} | parent_event_id: {e.parent_event_id || 'NONE'} | Has response_text: {e.data?.response_text ? 'YES' : 'NO'}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     )
