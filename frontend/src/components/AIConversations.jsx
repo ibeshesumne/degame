@@ -10,8 +10,10 @@ function AIConversations({ events, gameId }) {
     events: events 
   })
   
-  // Ensure events is an array
-  const safeEvents = Array.isArray(events) ? events : []
+  // Wrap in try-catch to prevent silent failures in production
+  try {
+    // Ensure events is an array
+    const safeEvents = Array.isArray(events) ? events : []
   
   // Process events to pair prompts with responses
   const conversations = useMemo(() => {
@@ -125,6 +127,33 @@ function AIConversations({ events, gameId }) {
       </div>
     </div>
   )
+  } catch (error) {
+    // Always render something, even if there's an error
+    console.error('❌ AIConversations ERROR:', error)
+    return (
+      <div className="bg-red-100 p-6 rounded-lg shadow-lg border-4 border-red-500" style={{ minHeight: '200px' }}>
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold text-red-800 flex items-center gap-3">
+            <span className="text-3xl">⚠️</span>
+            AI Conversations - Error
+          </h2>
+        </div>
+        <div className="text-center py-4">
+          <p className="text-red-700 mb-4 font-semibold">Component encountered an error</p>
+          <div className="bg-white p-4 rounded border-2 border-red-300 text-left">
+            <p className="text-sm font-semibold text-red-700 mb-2">Error Details:</p>
+            <pre className="text-xs text-red-600 overflow-auto max-h-40">
+              {error.toString()}
+              {error.stack && `\n\n${error.stack}`}
+            </pre>
+            <p className="text-xs text-gray-600 mt-3">
+              Events count: {events?.length || 0} | Game ID: {gameId || 'none'}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 }
 
 function ConversationCard({ conversation }) {
