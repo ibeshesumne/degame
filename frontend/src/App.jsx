@@ -269,12 +269,8 @@ function App() {
       return
     }
     
-    // Only prevent fetch if gameId was explicitly cleared (set to null) - not if it's just different
-    // This allows joining a game where gameId state hasn't updated yet
-    if (gameId === null) {
-      return
-    }
-    
+    // Always allow creator check - this is called explicitly when joining/creating games
+    // No guard needed here since it's an explicit check, not a polling function
     try {
       const response = await axios.get(`${API_BASE}/game/${id}/creator`, {
         headers: { 'Authorization': `Bearer ${sessionId || 'anonymous'}` },
