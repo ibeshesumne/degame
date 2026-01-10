@@ -206,20 +206,35 @@ function App() {
   }
 
   const handleGameWiped = () => {
-    // Game has been wiped - clear all state and show message
+    // Game has been wiped - clear all state and show prominent message
+    const wipedGameId = gameId // Save before clearing
+    
     setGameId(null)
     setGameState(null)
     setPlayers([])
     setEvents([])
     setSessions([])
     setIsCreator(false)
-    setError('This game has been permanently deleted by its creator.')
+    
+    // Stop polling immediately
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
     }
+    
+    // Show prominent alert
+    alert(`⚠️ Game Deleted\n\nThe game "${wipedGameId}" has been permanently deleted by its creator.\n\nAll game data, events, and sessions have been removed.`)
+    
+    // Also set error message for display
+    setError(`This game (${wipedGameId}) has been permanently deleted by its creator.`)
   }
 
   const fetchSessions = async (id) => {
+    // Don't fetch if gameId was cleared (game was wiped)
+    if (!id || id !== gameId) {
+      return
+    }
+    
     try {
       const response = await axios.get(`${API_BASE}/game/${id}/sessions`, {
         headers: { 'Authorization': `Bearer ${sessionId || 'anonymous'}` },
@@ -229,7 +244,12 @@ function App() {
     } catch (err) {
       console.error('Fetch sessions error:', err)
       // Check if game was wiped (404 or game not found)
-      if (err.response?.status === 404 || err.response?.data?.detail?.includes('not found')) {
+      const is404 = err.response?.status === 404
+      const isNotFound = err.response?.data?.detail?.toLowerCase().includes('not found') || 
+                        err.response?.data?.detail?.toLowerCase().includes('wiped')
+      
+      if (is404 || isNotFound) {
+        console.log('Game appears to be wiped (from sessions fetch), handling...')
         handleGameWiped()
         return
       }
@@ -238,6 +258,11 @@ function App() {
   }
 
   const checkCreator = async (id) => {
+    // Don't fetch if gameId was cleared (game was wiped)
+    if (!id || id !== gameId) {
+      return
+    }
+    
     try {
       const response = await axios.get(`${API_BASE}/game/${id}/creator`, {
         headers: { 'Authorization': `Bearer ${sessionId || 'anonymous'}` },
@@ -247,7 +272,12 @@ function App() {
     } catch (err) {
       console.error('Check creator error:', err)
       // Check if game was wiped (404 or game not found)
-      if (err.response?.status === 404 || err.response?.data?.detail?.includes('not found')) {
+      const is404 = err.response?.status === 404
+      const isNotFound = err.response?.data?.detail?.toLowerCase().includes('not found') || 
+                        err.response?.data?.detail?.toLowerCase().includes('wiped')
+      
+      if (is404 || isNotFound) {
+        console.log('Game appears to be wiped (from creator check), handling...')
         handleGameWiped()
         return
       }
@@ -294,6 +324,11 @@ function App() {
   }
 
   const fetchUpdates = async (id, since = null) => {
+    // Don't fetch if gameId was cleared (game was wiped)
+    if (!id || id !== gameId) {
+      return
+    }
+    
     try {
       const url = since 
         ? `${API_BASE}/game/${id}/updates?since=${encodeURIComponent(since)}`
@@ -341,9 +376,16 @@ function App() {
     } catch (err) {
       console.error('Fetch updates error:', err)
       // Check if game was wiped (404 or game not found)
-      if (err.response?.status === 404 || err.response?.data?.detail?.includes('not found')) {
+      const is404 = err.response?.status === 404
+      const isNotFound = err.response?.data?.detail?.toLowerCase().includes('not found') || 
+                        err.response?.data?.detail?.toLowerCase().includes('wiped')
+      
+      if (is404 || isNotFound) {
+        console.log('Game appears to be wiped, handling...')
         handleGameWiped()
+        return
       }
+      // For other errors, just log but don't break the polling
     }
   }
 
@@ -351,6 +393,12 @@ function App() {
     // Clear any existing polling
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+    
+    // Don't start polling if no game ID
+    if (!id) {
+      return
     }
     
     // Initial fetch
@@ -359,9 +407,16 @@ function App() {
     
     // Poll every 2 seconds
     pollingIntervalRef.current = setInterval(() => {
-      if (id) {
+      // Check if game still exists before polling
+      if (id && id === gameId) {
         fetchUpdates(id, lastUpdateTime)
         fetchSessions(id)
+      } else {
+        // Game was wiped or changed, stop polling
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current)
+          pollingIntervalRef.current = null
+        }
       }
     }, 2000)
   }
@@ -376,6 +431,11 @@ function App() {
   }, [])
 
   const fetchGameState = async (id) => {
+    // Don't fetch if gameId was cleared (game was wiped)
+    if (!id || id !== gameId) {
+      return
+    }
+    
     try {
       const response = await axios.get(`${API_BASE}/game/${id}/state`, {
         headers: { 'Authorization': `Bearer ${sessionId || 'anonymous'}` },
@@ -386,7 +446,12 @@ function App() {
       setError(null)
     } catch (err) {
       // Check if game was wiped (404 or game not found)
-      if (err.response?.status === 404 || err.response?.data?.detail?.includes('not found')) {
+      const is404 = err.response?.status === 404
+      const isNotFound = err.response?.data?.detail?.toLowerCase().includes('not found') || 
+                        err.response?.data?.detail?.toLowerCase().includes('wiped')
+      
+      if (is404 || isNotFound) {
+        console.log('Game appears to be wiped (from state fetch), handling...')
         handleGameWiped()
         return
       }
