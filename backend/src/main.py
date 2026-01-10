@@ -123,7 +123,13 @@ def get_or_create_session(session_id: str, user_name: Optional[str] = None, game
     
     # Create new session
     if not user_name:
-        user_name = f"User_{session_id[:8]}"
+        # Use last 8 characters of session_id to avoid "User_session_" issue
+        # If session_id starts with "session_", use characters after the prefix
+        if session_id.startswith("session_"):
+            # Extract meaningful part: session_TIMESTAMP_RANDOM -> use last 8 chars
+            user_name = f"User_{session_id[-8:]}"
+        else:
+            user_name = f"User_{session_id[:8]}"
     if not game_id:
         game_id = "general"
     
@@ -680,7 +686,11 @@ async def join_game(
     
     # Create or update session with proper user_name
     if not user_name:
-        user_name = f"User_{user_id[:8]}"
+        # Use last 8 characters of user_id to avoid "User_session_" issue
+        if user_id.startswith("session_"):
+            user_name = f"User_{user_id[-8:]}"
+        else:
+            user_name = f"User_{user_id[:8]}"
     
     # Always update the session with the provided user_name (or default)
     session = event_storage.create_session(user_id, user_name, game_id)
