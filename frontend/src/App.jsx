@@ -205,6 +205,20 @@ function App() {
     }
   }
 
+  const handleGameWiped = () => {
+    // Game has been wiped - clear all state and show message
+    setGameId(null)
+    setGameState(null)
+    setPlayers([])
+    setEvents([])
+    setSessions([])
+    setIsCreator(false)
+    setError('This game has been permanently deleted by its creator.')
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+    }
+  }
+
   const fetchSessions = async (id) => {
     try {
       const response = await axios.get(`${API_BASE}/game/${id}/sessions`, {
@@ -214,6 +228,11 @@ function App() {
       setSessions(response.data.sessions || [])
     } catch (err) {
       console.error('Fetch sessions error:', err)
+      // Check if game was wiped (404 or game not found)
+      if (err.response?.status === 404 || err.response?.data?.detail?.includes('not found')) {
+        handleGameWiped()
+        return
+      }
       setSessions([])
     }
   }
@@ -227,6 +246,11 @@ function App() {
       setIsCreator(response.data.is_creator || false)
     } catch (err) {
       console.error('Check creator error:', err)
+      // Check if game was wiped (404 or game not found)
+      if (err.response?.status === 404 || err.response?.data?.detail?.includes('not found')) {
+        handleGameWiped()
+        return
+      }
       setIsCreator(false)
     }
   }
@@ -316,6 +340,10 @@ function App() {
       }
     } catch (err) {
       console.error('Fetch updates error:', err)
+      // Check if game was wiped (404 or game not found)
+      if (err.response?.status === 404 || err.response?.data?.detail?.includes('not found')) {
+        handleGameWiped()
+      }
     }
   }
 
@@ -357,6 +385,11 @@ function App() {
       setPlayers(Object.values(response.data.game_state.players))
       setError(null)
     } catch (err) {
+      // Check if game was wiped (404 or game not found)
+      if (err.response?.status === 404 || err.response?.data?.detail?.includes('not found')) {
+        handleGameWiped()
+        return
+      }
       const errorMsg = err.response?.data?.detail || err.message || 'Failed to fetch game state'
       setError(`Error fetching game state: ${errorMsg}`)
       console.error('Fetch game state error:', err)

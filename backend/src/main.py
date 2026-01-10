@@ -519,6 +519,10 @@ async def get_game_state(
     user_id: str = Depends(get_current_user)
 ):
     """Get current game state."""
+    # Check if game was wiped first
+    if is_game_wiped(game_id):
+        raise HTTPException(status_code=404, detail="Game not found (may have been wiped)")
+    
     # Try loading from storage if not in memory
     if game_id not in games:
         engine = game_storage.load_game(game_id)
@@ -747,6 +751,34 @@ async def join_game(
     }
 
 
+def is_game_wiped(game_id: str) -> bool:
+    """
+    Check if a game has been wiped (all files deleted).
+    
+    Args:
+        game_id: Game ID to check
+        
+    Returns:
+        True if game appears to be wiped (all files missing), False otherwise
+    """
+    from pathlib import Path
+    
+    # Check if game file exists
+    game_exists = game_id in games or game_storage.load_game(game_id) is not None
+    
+    # Check if events file exists (using the same path logic as EventStorage)
+    events_file = Path(event_storage.events_dir) / f"{game_id}_events.json"
+    events_exist = events_file.exists()
+    
+    # Check if sessions file exists (using the same path logic as EventStorage)
+    sessions_file = Path(event_storage.sessions_dir) / f"{game_id}_sessions.json"
+    sessions_exist = sessions_file.exists()
+    
+    # If all three are missing, game was likely wiped
+    # If any exist, game still exists (even if partially)
+    return not game_exists and not events_exist and not sessions_exist
+
+
 @app.get("/game/{game_id}/sessions")
 async def get_sessions(
     game_id: str,
@@ -758,6 +790,10 @@ async def get_sessions(
     Args:
         game_id: Game ID
     """
+    # Check if game was wiped
+    if is_game_wiped(game_id):
+        raise HTTPException(status_code=404, detail="Game not found (may have been wiped)")
+    
     sessions_list = event_storage.get_sessions(game_id)
     return {
         "sessions": [s.model_dump(mode='json') for s in sessions_list],
@@ -779,6 +815,10 @@ async def get_updates(
         since: ISO timestamp string - only return events after this time
     """
     from datetime import datetime
+    
+    # Check if game was wiped
+    if is_game_wiped(game_id):
+        raise HTTPException(status_code=404, detail="Game not found (may have been wiped)")
     
     # Parse since timestamp if provided
     since_dt = None
@@ -830,6 +870,10 @@ async def get_game_creator(
     Returns:
         Object with is_creator boolean and creator_session_id
     """
+    # Check if game was wiped
+    if is_game_wiped(game_id):
+        raise HTTPException(status_code=404, detail="Game not found (may have been wiped)")
+    
     creator_session_id = event_storage.get_game_creator(game_id)
     
     return {
