@@ -230,8 +230,14 @@ function App() {
   }
 
   const fetchSessions = async (id) => {
-    // Don't fetch if gameId was cleared (game was wiped)
-    if (!id || id !== gameId) {
+    // Don't fetch if no game ID provided
+    if (!id) {
+      return
+    }
+    
+    // Only prevent fetch if gameId was explicitly cleared (set to null) - not if it's just different
+    // This allows joining a game where gameId state hasn't updated yet
+    if (gameId === null) {
       return
     }
     
@@ -258,8 +264,14 @@ function App() {
   }
 
   const checkCreator = async (id) => {
-    // Don't fetch if gameId was cleared (game was wiped)
-    if (!id || id !== gameId) {
+    // Don't fetch if no game ID provided
+    if (!id) {
+      return
+    }
+    
+    // Only prevent fetch if gameId was explicitly cleared (set to null) - not if it's just different
+    // This allows joining a game where gameId state hasn't updated yet
+    if (gameId === null) {
       return
     }
     
@@ -324,8 +336,14 @@ function App() {
   }
 
   const fetchUpdates = async (id, since = null) => {
-    // Don't fetch if gameId was cleared (game was wiped)
-    if (!id || id !== gameId) {
+    // Don't fetch if no game ID provided
+    if (!id) {
+      return
+    }
+    
+    // Only prevent fetch if gameId was explicitly cleared (set to null) - not if it's just different
+    // This allows joining a game where gameId state hasn't updated yet
+    if (gameId === null) {
       return
     }
     
@@ -407,12 +425,13 @@ function App() {
     
     // Poll every 2 seconds
     pollingIntervalRef.current = setInterval(() => {
-      // Check if game still exists before polling
-      if (id && id === gameId) {
+      // Check if game was wiped (gameId set to null) before polling
+      // Allow polling if gameId matches OR if gameId hasn't been set yet (during join)
+      if (id && gameId !== null) {
         fetchUpdates(id, lastUpdateTime)
         fetchSessions(id)
       } else {
-        // Game was wiped or changed, stop polling
+        // Game was wiped (gameId is null), stop polling
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current)
           pollingIntervalRef.current = null
@@ -431,8 +450,14 @@ function App() {
   }, [])
 
   const fetchGameState = async (id) => {
-    // Don't fetch if gameId was cleared (game was wiped)
-    if (!id || id !== gameId) {
+    // Don't fetch if no game ID provided
+    if (!id) {
+      return
+    }
+    
+    // Only prevent fetch if gameId was explicitly cleared (set to null) - not if it's just different
+    // This allows joining a game where gameId state hasn't updated yet
+    if (gameId === null) {
       return
     }
     
