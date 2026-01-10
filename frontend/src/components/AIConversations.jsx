@@ -85,6 +85,7 @@ function AIConversations({ events, gameId }) {
                     <span className="text-3xl">💬</span>
                     AI Conversations
                     <span className="bg-blue-500 text-white text-sm px-3 py-1 rounded-full">0</span>
+                    <span className="text-xs text-gray-400">(v1.0 - {new Date().toISOString().split('T')[0]})</span>
                   </h2>
                 </div>
                 <div className="text-center py-4">
