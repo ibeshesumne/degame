@@ -69,6 +69,9 @@ function AIConversations({ events, gameId }) {
             conversationsCount: conversations.length,
             conversations: conversations
           })
+          
+          // Version marker to force fresh deployment
+          const VERSION = '2026-01-10-v1.0'
 
           // Always show the component, even if empty
           const promptEvents = safeEvents.filter(e => e.event_type === 'PROMPT')
