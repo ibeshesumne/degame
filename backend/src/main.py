@@ -692,18 +692,52 @@ async def join_game(
         else:
             user_name = f"User_{user_id[:8]}"
     
-    # Always update the session with the provided user_name (or default)
-    session = event_storage.create_session(user_id, user_name, game_id)
-    sessions[user_id] = session
+    # Check if a session with the same user_name already exists for this game
+    existing_sessions = event_storage.get_sessions(game_id)
+    existing_session_with_same_name = None
+    session_already_exists = False
+    is_device_transfer = False
     
-    # Create join event
-    event_storage.create_event(
-        game_id=game_id,
-        event_type=EventType.PLAYER_JOINED,
-        actor_session_id=user_id,
-        actor_name=user_name,
-        data={"user_name": user_name}
-    )
+    for existing_session in existing_sessions:
+        if existing_session.user_name.lower() == user_name.lower():
+            if existing_session.session_id == user_id:
+                # Same session_id - just update activity (same device rejoining)
+                session = existing_session
+                event_storage.update_session_activity(user_id, game_id)
+                sessions[user_id] = session
+                session_already_exists = True
+                break
+            else:
+                # Different session_id but same name - this is the same person on a different device
+                existing_session_with_same_name = existing_session
+                break
+    
+    # Handle session creation/transfer
+    if not session_already_exists:
+        if existing_session_with_same_name:
+            # Transfer the session to the new device's session_id
+            is_device_transfer = True
+            session = event_storage.transfer_session_by_name(user_id, user_name, game_id)
+            if session:
+                sessions[user_id] = session
+            else:
+                # Fallback: create new session if transfer failed
+                session = event_storage.create_session(user_id, user_name, game_id)
+                sessions[user_id] = session
+        else:
+            # No existing session found - create a new one
+            session = event_storage.create_session(user_id, user_name, game_id)
+            sessions[user_id] = session
+    
+    # Create join event (skip if same session_id is rejoining to avoid duplicate events)
+    if not session_already_exists:
+        event_storage.create_event(
+            game_id=game_id,
+            event_type=EventType.PLAYER_JOINED,
+            actor_session_id=user_id,
+            actor_name=user_name,
+            data={"user_name": user_name, "device_transfer": is_device_transfer}
+        )
     
     return {
         "message": f"Joined game as {user_name}",

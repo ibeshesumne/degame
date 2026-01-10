@@ -212,6 +212,87 @@ class EventStorage:
         except Exception as e:
             print(f"Error updating session: {e}")
     
+    def transfer_session_by_name(
+        self,
+        new_session_id: str,
+        user_name: str,
+        game_id: str
+    ) -> Optional[UserSession]:
+        """
+        Transfer an existing session with the same user_name to a new session_id.
+        This allows the same participant to join from a different device.
+        
+        Args:
+            new_session_id: The new session_id (from the new device)
+            user_name: The user_name to find the existing session
+            game_id: Game ID
+            
+        Returns:
+            UserSession if found and transferred, None otherwise
+        """
+        sessions_file = self._get_sessions_file(game_id)
+        if not sessions_file.exists():
+            return None
+        
+        try:
+            with open(sessions_file, 'r') as f:
+                sessions_data = json.load(f)
+            
+            # Find session with matching user_name (case-insensitive)
+            existing_session_data = None
+            for session_data in sessions_data:
+                if session_data.get('user_name', '').lower() == user_name.lower():
+                    existing_session_data = session_data
+                    break
+            
+            if not existing_session_data:
+                return None
+            
+            # Preserve the original joined_at timestamp
+            original_joined_at = existing_session_data.get('joined_at')
+            
+            # Parse joined_at if it's a string (from JSON)
+            if isinstance(original_joined_at, str):
+                try:
+                    # Handle ISO format strings
+                    if 'T' in original_joined_at or ' ' in original_joined_at:
+                        parsed_joined_at = datetime.fromisoformat(original_joined_at.replace('Z', '+00:00'))
+                    else:
+                        parsed_joined_at = datetime.fromisoformat(original_joined_at)
+                except (ValueError, AttributeError):
+                    # Fallback to current time if parsing fails
+                    parsed_joined_at = datetime.now()
+            elif isinstance(original_joined_at, datetime):
+                parsed_joined_at = original_joined_at
+            else:
+                # Fallback to current time if unknown format
+                parsed_joined_at = datetime.now()
+            
+            # Remove the old session
+            sessions_data = [s for s in sessions_data if s['session_id'] != existing_session_data['session_id']]
+            
+            # Create new session with new session_id but same user_name and joined_at
+            new_session = UserSession(
+                session_id=new_session_id,
+                user_name=user_name,
+                game_id=game_id,
+                joined_at=parsed_joined_at,
+                last_active=datetime.now(),
+                metadata=existing_session_data.get('metadata', {})
+            )
+            
+            # Add the new session
+            sessions_data.append(new_session.model_dump(mode='json'))
+            
+            # Save updated sessions
+            with open(sessions_file, 'w') as f:
+                json.dump(sessions_data, f, indent=2, default=str)
+            
+            return new_session
+        except Exception as e:
+            print(f"Error transferring session: {e}")
+            return None
+    
     def get_sessions(self, game_id: str) -> List[UserSession]:
         """
         Get all sessions for a game.
