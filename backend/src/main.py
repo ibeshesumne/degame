@@ -781,6 +781,110 @@ async def get_updates(
     }
 
 
+@app.get("/game/{game_id}/creator")
+async def get_game_creator(
+    game_id: str,
+    user_id: str = Depends(get_current_user)
+):
+    """
+    Check if the current user is the game creator.
+    
+    Args:
+        game_id: Game ID
+        user_id: Current session ID
+        
+    Returns:
+        Object with is_creator boolean and creator_session_id
+    """
+    creator_session_id = event_storage.get_game_creator(game_id)
+    
+    return {
+        "is_creator": creator_session_id == user_id,
+        "creator_session_id": creator_session_id,
+        "current_user_id": user_id
+    }
+
+
+@app.delete("/game/{game_id}/wipe")
+async def wipe_game(
+    game_id: str,
+    user_id: str = Depends(get_current_user)
+):
+    """
+    Permanently delete all traces of a game from the system.
+    
+    Only the game creator can wipe a game. This will:
+    - Delete the game state file
+    - Delete all events
+    - Delete all sessions
+    - Remove from in-memory cache
+    
+    After wiping, the game cannot be reopened by any participant.
+    
+    Args:
+        game_id: Game ID to wipe
+        user_id: Current session ID (must be the creator)
+    """
+    # Check if user is the creator
+    creator_session_id = event_storage.get_game_creator(game_id)
+    
+    if creator_session_id is None:
+        # Game might not exist or have no events
+        # Check if game exists at all
+        game_exists = (
+            game_id in games or
+            game_storage.load_game(game_id) is not None or
+            event_storage.get_events(game_id, since=None, limit=1) or
+            event_storage.get_sessions(game_id)
+        )
+        
+        if not game_exists:
+            raise HTTPException(status_code=404, detail="Game not found")
+        else:
+            raise HTTPException(
+                status_code=403, 
+                detail="Cannot determine game creator. Only the creator can wipe a game."
+            )
+    
+    if creator_session_id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the game creator can wipe a game"
+        )
+    
+    # Delete all game files
+    deleted_files = []
+    
+    # Delete game state file
+    if game_storage.delete_game(game_id):
+        deleted_files.append("game state")
+    
+    # Delete events file
+    if event_storage.delete_events(game_id):
+        deleted_files.append("events")
+    
+    # Delete sessions file
+    if event_storage.delete_sessions(game_id):
+        deleted_files.append("sessions")
+    
+    # Remove from in-memory cache
+    if game_id in games:
+        del games[game_id]
+    
+    if not deleted_files:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete game files. Game may already be deleted."
+        )
+    
+    return {
+        "message": "Game wiped successfully",
+        "game_id": game_id,
+        "deleted_files": deleted_files,
+        "warning": "This game can no longer be accessed by any participant"
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

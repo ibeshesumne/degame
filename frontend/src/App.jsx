@@ -30,6 +30,8 @@ function App() {
   const [lastUpdateTime, setLastUpdateTime] = useState(null)
   const pollingIntervalRef = useRef(null)
   const [replyingToThread, setReplyingToThread] = useState(null)
+  const [isCreator, setIsCreator] = useState(false)
+  const [showWipeConfirm, setShowWipeConfirm] = useState(false)
 
   // Generate a unique session ID for this user
   useEffect(() => {
@@ -111,9 +113,11 @@ function App() {
       // If user has a name, join the game automatically
       if (userName && sessionId) {
         await joinGame(newGameId, userName)
+      } else {
+        // Still check creator status even if not joined yet
+        await checkCreator(newGameId)
+        await fetchGameState(newGameId)
       }
-      
-      await fetchGameState(newGameId)
     } catch (err) {
       const errorMsg = err.response?.data?.detail || err.message || 'Failed to create game'
       console.error('Create game error:', err)
@@ -168,6 +172,7 @@ function App() {
       setLastUpdateTime(null)
       await fetchGameState(finalGameId)
       await fetchSessions(finalGameId)
+      await checkCreator(finalGameId)
       // Load all existing events first
       await fetchUpdates(finalGameId, null)
       // Start polling for updates
@@ -210,6 +215,57 @@ function App() {
     } catch (err) {
       console.error('Fetch sessions error:', err)
       setSessions([])
+    }
+  }
+
+  const checkCreator = async (id) => {
+    try {
+      const response = await axios.get(`${API_BASE}/game/${id}/creator`, {
+        headers: { 'Authorization': `Bearer ${sessionId || 'anonymous'}` },
+        timeout: 10000
+      })
+      setIsCreator(response.data.is_creator || false)
+    } catch (err) {
+      console.error('Check creator error:', err)
+      setIsCreator(false)
+    }
+  }
+
+  const wipeGame = async () => {
+    if (!gameId) return
+    
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await axios.delete(
+        `${API_BASE}/game/${gameId}/wipe`,
+        {
+          headers: { 
+            'Authorization': `Bearer ${sessionId || 'anonymous'}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000
+        }
+      )
+      
+      // Clear all game state
+      setUserName(null)
+      setGameId(null)
+      setEvents([])
+      setSessions([])
+      setIsCreator(false)
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+      
+      alert(`Game wiped successfully. ${response.data.warning}`)
+    } catch (err) {
+      const errorMsg = err.response?.data?.detail || err.message || 'Failed to wipe game'
+      setError(`Error wiping game: ${errorMsg}`)
+      console.error('Wipe game error:', err)
+    } finally {
+      setLoading(false)
+      setShowWipeConfirm(false)
     }
   }
 
@@ -521,6 +577,42 @@ function App() {
           </div>
         )}
 
+        {showWipeConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+              <h3 className="text-xl font-bold text-red-600 mb-4">⚠️ Wipe Game?</h3>
+              <p className="mb-4 text-gray-700">
+                Are you sure you want to <strong>permanently delete</strong> this game? This action cannot be undone.
+              </p>
+              <p className="mb-4 text-sm text-gray-600">
+                This will delete:
+                <ul className="list-disc list-inside mt-2">
+                  <li>All game data</li>
+                  <li>All events and history</li>
+                  <li>All participant sessions</li>
+                </ul>
+              </p>
+              <p className="mb-4 text-sm font-semibold text-red-700">
+                The game will be completely removed and cannot be reopened by anyone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowWipeConfirm(false)}
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={wipeGame}
+                  className="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800 font-semibold"
+                >
+                  Yes, Wipe Game
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {gameId && (
           <>
             <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow-lg border-2 border-blue-300">
@@ -552,6 +644,7 @@ function App() {
                       setGameId(null)
                       setEvents([])
                       setSessions([])
+                      setIsCreator(false)
                       if (pollingIntervalRef.current) {
                         clearInterval(pollingIntervalRef.current)
                       }
@@ -560,6 +653,15 @@ function App() {
                   >
                     Leave Game
                   </button>
+                  {isCreator && (
+                    <button
+                      onClick={() => setShowWipeConfirm(true)}
+                      className="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800 font-semibold"
+                      title="Permanently delete this game and all its data"
+                    >
+                      🗑️ Wipe Game
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

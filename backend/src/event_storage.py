@@ -230,3 +230,67 @@ class EventStorage:
         except Exception as e:
             print(f"Error loading sessions: {e}")
             return []
+    
+    def delete_events(self, game_id: str) -> bool:
+        """
+        Delete events file for a game.
+        
+        Args:
+            game_id: Game ID to delete events for
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            events_file = self._get_events_file(game_id)
+            if events_file.exists():
+                events_file.unlink()
+                return True
+            return False
+        except Exception as e:
+            print(f"Error deleting events for game {game_id}: {e}")
+            return False
+    
+    def delete_sessions(self, game_id: str) -> bool:
+        """
+        Delete sessions file for a game.
+        
+        Args:
+            game_id: Game ID to delete sessions for
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            sessions_file = self._get_sessions_file(game_id)
+            if sessions_file.exists():
+                sessions_file.unlink()
+                return True
+            return False
+        except Exception as e:
+            print(f"Error deleting sessions for game {game_id}: {e}")
+            return False
+    
+    def get_game_creator(self, game_id: str) -> Optional[str]:
+        """
+        Get the session_id of the game creator.
+        
+        The creator is identified as the actor_session_id of the first PLAYER_JOINED
+        event with data containing {"message": "Game created"}.
+        
+        Args:
+            game_id: Game ID
+            
+        Returns:
+            Session ID of the creator, or None if not found
+        """
+        events = self.get_events(game_id, since=None, limit=None)
+        # Sort by timestamp to find the first event
+        events.sort(key=lambda e: e.timestamp)
+        
+        for event in events:
+            if (event.event_type == EventType.PLAYER_JOINED and 
+                event.data.get("message") == "Game created"):
+                return event.actor_session_id
+        
+        return None
