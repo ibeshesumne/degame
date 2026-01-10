@@ -235,11 +235,9 @@ function App() {
       return
     }
     
-    // Only prevent fetch if gameId was explicitly cleared (set to null) - not if it's just different
-    // This allows joining a game where gameId state hasn't updated yet
-    if (gameId === null) {
-      return
-    }
+    // Always allow fetch when id is explicitly provided
+    // Polling logic already checks gameId !== null before calling this function
+    // So we can safely allow all explicit calls here
     
     try {
       const response = await axios.get(`${API_BASE}/game/${id}/sessions`, {
@@ -337,11 +335,9 @@ function App() {
       return
     }
     
-    // Only prevent fetch if gameId was explicitly cleared (set to null) - not if it's just different
-    // This allows joining a game where gameId state hasn't updated yet
-    if (gameId === null) {
-      return
-    }
+    // Always allow fetch when id is explicitly provided
+    // Polling logic already checks gameId !== null before calling this function
+    // So we can safely allow all explicit calls here
     
     try {
       const url = since 
@@ -451,11 +447,9 @@ function App() {
       return
     }
     
-    // Only prevent fetch if gameId was explicitly cleared (set to null) - not if it's just different
-    // This allows joining a game where gameId state hasn't updated yet
-    if (gameId === null) {
-      return
-    }
+    // Always allow fetch when id is explicitly provided
+    // This is called explicitly when joining/creating games, so we should always fetch
+    // No guard needed here since it's an explicit call, not a polling function
     
     try {
       const response = await axios.get(`${API_BASE}/game/${id}/state`, {
